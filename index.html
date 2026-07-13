@@ -276,12 +276,6 @@
     overflow:hidden;
     text-overflow:ellipsis;
   }
-  .card-id{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11.5px;
-    color:var(--text-dim);
-    margin-bottom:10px;
-  }
   .card-handle{
     font-family:'IBM Plex Mono',monospace;
     font-weight:700;
@@ -385,7 +379,7 @@
   </div>
 
   <div class="toolbar">
-    <input type="text" id="searchBox" placeholder="Search name, ID, or handle...">
+    <input type="text" id="searchBox" placeholder="Search name or handle...">
     <select id="sortSelect">
       <option value="rating-desc">Sort: Rating (high → low)</option>
       <option value="rating-asc">Sort: Rating (low → high)</option>
@@ -400,10 +394,6 @@
 <footer>IUBAT Competitive Programmers &middot; data fetched from the Codeforces API &middot; stored locally in this browser</footer>
 
 <script>
-// ── Supabase setup ────────────────────────────────────────────────
-// 1. Create a free project at https://supabase.com
-// 2. Run the SQL from setup.sql (included alongside this file) in the SQL Editor
-// 3. Go to Project Settings → API and paste your values below
 const SUPABASE_URL = 'https://zqfzwigipfokwrnzkykj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxZnp3aWdpcGZva3dybnpreWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDg2MjgsImV4cCI6MjA5OTUyNDYyOH0.KiA3CAv462bzOZxQBzZrZdzR-zNEwBAL8bxPciHYqJA';
 
@@ -434,7 +424,6 @@ async function loadMembers(){
     .select('*')
     .order('added_at', { ascending: false });
   if(error){ console.error(error); return []; }
-  // map DB column names (snake_case) to the shape the rest of the app expects
   return data.map(row => ({
     id: row.id,
     name: row.name,
@@ -470,7 +459,6 @@ function extractHandle(input){
   input = input.trim();
   const match = input.match(/codeforces\.com\/(?:profile|submissions)\/([A-Za-z0-9_.-]+)/i);
   if(match) return match[1];
-  // strip any protocol/slashes, just in case, otherwise treat as raw handle
   return input.replace(/\/+$/,'').split('/').pop();
 }
 
@@ -513,7 +501,6 @@ function cardTemplate(m){
       ${avatar ? `<img class="avatar" src="${avatar}" alt="${m.handle}">` : `<div class="avatar"></div>`}
       <div class="card-body">
         <p class="card-name">${escapeHtml(m.name)}</p>
-        <p class="card-id">ID: ${escapeHtml(m.studentId)}</p>
         <a class="card-handle" href="https://codeforces.com/profile/${encodeURIComponent(m.handle)}" target="_blank" rel="noopener">${escapeHtml(m.handle)}</a>
         <p class="card-rank">${escapeHtml(rankLabel)}</p>
         <div class="card-ratings">
@@ -557,7 +544,6 @@ async function render(){
   let filtered = members.filter(m =>
     !query ||
     m.name.toLowerCase().includes(query) ||
-    m.studentId.toLowerCase().includes(query) ||
     m.handle.toLowerCase().includes(query)
   );
 
