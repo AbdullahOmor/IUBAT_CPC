@@ -5,338 +5,579 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IUBAT Competitive Programmers</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-  :root{
-    --bg: #090b0f;
-    --bg-panel: #0f1319;
-    --line: #1e242d;
-    --text: #e8ecf1;
-    --text-dim: #7c8898;
-    --accent: #ffb300; /* judge amber */
-    --ac-green: #21c15a; /* accepted */
-    --wa-red: #ff4d4d;
+  :root {
+    --bg: #05070a;
+    --bg-panel: rgba(15, 20, 30, 0.7);
+    --bg-card: rgba(11, 15, 23, 0.85);
+    --line: rgba(255, 255, 255, 0.06);
+    --line-active: rgba(255, 179, 0, 0.3);
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
+    --accent: #ffb300; 
+    --accent-glow: rgba(255, 179, 0, 0.15);
+    --ac-green: #10b981; 
+    --wa-red: #ef4444;
 
-    --r-newbie: #808080;
-    --r-pupil: #77ff77;
-    --r-specialist: #03a89e;
-    --r-expert: #4a7dff;
-    --r-cm: #b04bf0;
-    --r-master: #ff9c33;
-    --r-gm: #ff4d4d;
-    --r-lgm: #ff2020;
+    --r-newbie: #94a3b8;
+    --r-pupil: #22c55e;
+    --r-specialist: #06b6d4;
+    --r-expert: #3b82f6;
+    --r-cm: #a855f7;
+    --r-master: #f97316;
+    --r-gm: #ef4444;
+    --r-lgm: #f43f5e;
   }
 
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(255,179,0,0.07), transparent 60%),
-      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(74,125,255,0.06), transparent 60%),
+  * { box-sizing: border-box; transition: all 0.2s ease-in-out; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: 
+      radial-gradient(circle at 80% 20%, rgba(255, 179, 0, 0.08), transparent 50%),
+      radial-gradient(circle at 20% 70%, rgba(59, 130, 246, 0.06), transparent 50%),
       var(--bg);
-    color:var(--text);
-    font-family:'Inter',sans-serif;
-    min-height:100vh;
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    backdrop-filter: blur(100px);
   }
 
-  .scanlines{
-    pointer-events:none;
-    position:fixed; inset:0;
-    background:repeating-linear-gradient(to bottom, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
-    z-index:1;
+  .scanlines {
+    pointer-events: none;
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.005) 0px, rgba(255,255,255,0.005) 1px, transparent 1px, transparent 4px);
+    z-index: 10;
   }
 
-  header{
-    position:relative;
-    padding:56px 24px 40px;
-    text-align:center;
-    border-bottom:1px solid var(--line);
-    overflow:hidden;
+  /* Dev Dashboard Drawer */
+  .dev-drawer {
+    background: #0b0f17;
+    border-bottom: 2px solid var(--wa-red);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 100;
   }
-  header::before{
-    content:"";
-    position:absolute; inset:0;
-    background-image:
-      linear-gradient(rgba(255,179,0,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,179,0,0.05) 1px, transparent 1px);
-    background-size:34px 34px;
-    -webkit-mask-image:radial-gradient(ellipse 600px 300px at 50% 0%, black, transparent 70%);
-    mask-image:radial-gradient(ellipse 600px 300px at 50% 0%, black, transparent 70%);
+  .dev-drawer.open { max-height: 120px; }
+  .dev-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
   }
-  .eyebrow{
-    position:relative;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    letter-spacing:.22em;
-    text-transform:uppercase;
-    color:var(--ac-green);
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    margin-bottom:18px;
+  .dev-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--wa-red);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 0;
   }
-  .eyebrow::before{
-    content:"";
-    width:7px;height:7px;border-radius:50%;
-    background:var(--ac-green);
-    box-shadow:0 0 8px var(--ac-green);
+  .dev-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
   }
-  h1{
-    position:relative;
-    font-family:'IBM Plex Mono',monospace;
-    font-weight:700;
-    font-size:clamp(28px, 5vw, 46px);
-    letter-spacing:-0.01em;
-    margin:0 0 10px;
+  .dev-input {
+    background: rgba(0,0,0,0.4) !important;
+    border-color: rgba(239, 68, 68, 0.2) !important;
+    width: 240px !important;
   }
-  h1 span{color:var(--accent);}
-  .sub{
-    position:relative;
-    color:var(--text-dim);
-    font-size:15px;
-    max-width:520px;
-    margin:0 auto;
+  .dev-input:focus { border-color: var(--wa-red) !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.15) !important;}
+  .dev-btn {
+    background: var(--wa-red);
+    color: white;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2);
+  }
+  .dev-btn:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
+
+  header {
+    position: relative;
+    padding: 80px 24px 50px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+  }
+  
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--ac-green);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    background: rgba(16, 185, 129, 0.06);
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(16, 185, 129, 0.15);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ac-green);
+    box-shadow: 0 0 10px var(--ac-green);
+  }
+  
+  h1 {
+    font-weight: 800;
+    font-size: clamp(32px, 6vw, 54px);
+    letter-spacing: -0.03em;
+    margin: 0 0 16px;
+    color: #fff;
+  }
+  h1 span {
+    color: var(--accent);
+    text-shadow: 0 0 40px var(--accent-glow);
+  }
+  
+  .sub {
+    color: var(--text-dim);
+    font-size: 16px;
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.6;
   }
 
-  .stats-bar{
-    position:relative;
-    display:flex;
-    justify-content:center;
-    gap:0;
-    margin-top:34px;
-    flex-wrap:wrap;
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 40px;
+    flex-wrap: wrap;
   }
-  .stat{
-    padding:0 28px;
-    border-right:1px solid var(--line);
-    text-align:center;
+  .stat {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--line);
+    padding: 16px 32px;
+    border-radius: 14px;
+    text-align: center;
+    min-width: 160px;
   }
-  .stat:last-child{border-right:none;}
-  .stat .num{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:26px;
-    font-weight:700;
-    color:var(--text);
+  .stat .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
   }
-  .stat .lbl{
-    font-size:11px;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    color:var(--text-dim);
-    margin-top:4px;
-  }
-
-  main{
-    max-width:1100px;
-    margin:0 auto;
-    padding:44px 24px 80px;
-    position:relative;
-    z-index:2;
+  .stat .lbl {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-weight: 600;
   }
 
-  .panel{
-    background:var(--bg-panel);
-    border:1px solid var(--line);
-    border-radius:10px;
-    padding:26px;
-    margin-bottom:40px;
-  }
-  .panel-title{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:13px;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    color:var(--text-dim);
-    margin:0 0 20px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .panel-title::after{
-    content:"";
-    flex:1;
-    height:1px;
-    background:var(--line);
+  main {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 50px 24px 100px;
+    position: relative;
+    z-index: 2;
   }
 
-  form{
-    display:grid;
-    grid-template-columns:1.2fr 0.8fr 1.4fr auto;
-    gap:14px;
-    align-items:end;
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 35px;
+    margin-bottom: 40px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    backdrop-filter: blur(12px);
   }
-  @media (max-width:760px){
-    form{grid-template-columns:1fr;}
+  
+  .panel-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
   }
-  label{
-    display:block;
-    font-size:11px;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    color:var(--text-dim);
-    margin-bottom:7px;
-  }
-  input[type=text]{
-    width:100%;
-    background:#12161d;
-    border:1px solid var(--line);
-    color:var(--text);
-    font-family:'Inter',sans-serif;
-    font-size:14.5px;
-    padding:11px 13px;
-    border-radius:7px;
-    outline:none;
-    transition:border-color .15s;
-  }
-  input[type=text]:focus{border-color:var(--accent);}
-  input[type=text]::placeholder{color:#4a5563;}
-
-  button{
-    font-family:'IBM Plex Mono',monospace;
-    font-weight:600;
-    font-size:13.5px;
-    letter-spacing:.03em;
-    background:var(--accent);
-    color:#111;
-    border:none;
-    padding:11px 22px;
-    border-radius:7px;
-    cursor:pointer;
-    white-space:nowrap;
-    transition:transform .1s, box-shadow .15s;
-  }
-  button:hover{box-shadow:0 0 0 3px rgba(255,179,0,0.18);}
-  button:active{transform:scale(0.97);}
-  button:disabled{opacity:.5;cursor:wait;}
-
-  .status-line{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12.5px;
-    margin-top:14px;
-    min-height:16px;
-  }
-  .status-line.ok{color:var(--ac-green);}
-  .status-line.err{color:var(--wa-red);}
-  .status-line.pending{color:var(--text-dim);}
-
-  .toolbar{
-    display:flex;
-    gap:12px;
-    align-items:center;
-    margin-bottom:22px;
-    flex-wrap:wrap;
-  }
-  .toolbar input[type=text]{max-width:280px;}
-  .toolbar select{
-    background:#12161d;
-    border:1px solid var(--line);
-    color:var(--text);
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12.5px;
-    padding:10px 12px;
-    border-radius:7px;
-    outline:none;
+  .panel-title::after {
+    content: "";
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--line-active), transparent);
   }
 
-  .grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(270px, 1fr));
-    gap:18px;
+  form {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr 1.4fr auto;
+    gap: 20px;
+    align-items: end;
+  }
+  @media (max-width: 900px) {
+    form { grid-template-columns: 1fr; gap: 16px; }
+    form button { width: 100%; margin-top: 10px; }
+  }
+  
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 9px;
+  }
+  
+  input[type=text], input[type=password] {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 13px 16px;
+    border-radius: 12px;
+    outline: none;
+  }
+  input[type=text]:focus, input[type=password]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow);
+    background: rgba(0, 0, 0, 0.4);
+  }
+  input[type=text]::placeholder { color: #475569; }
+
+  button {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .02em;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(255, 179, 0, 0.2);
+  }
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 179, 0, 0.4);
+  }
+  button:active { transform: translateY(0); }
+  button:disabled { opacity: .4; cursor: wait; transform: none; }
+
+  .status-line {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    margin-top: 20px;
+    min-height: 18px;
+    font-weight: 500;
+  }
+  .status-line.ok { color: var(--ac-green); }
+  .status-line.err { color: var(--wa-red); }
+  .status-line.pending { color: var(--text-dim); }
+
+  /* Resource Center Styles */
+  .resource-section {
+    margin-top: 15px;
+  }
+  .resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .resource-card {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .resource-card:hover {
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+  }
+  .resource-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+  }
+  .resource-info {
+    min-width: 0;
+  }
+  .resource-card:hover .resource-icon {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--wa-red);
+  }
+  .resource-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    margin: 0 0 3px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .resource-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin: 0;
   }
 
-  .card{
-    position:relative;
-    background:#0e1218;
-    border:1px solid var(--line);
-    border-left:4px solid var(--rank-color, var(--r-newbie));
-    border-radius:9px;
-    padding:20px 18px;
-    display:flex;
-    gap:14px;
-    transition:transform .15s, box-shadow .15s;
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
   }
-  .card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 10px 24px rgba(0,0,0,0.35);
+  .toolbar-filters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex: 1;
   }
-  .avatar{
-    width:56px;height:56px;
-    border-radius:8px;
-    background:#1a2029;
-    object-fit:cover;
-    flex-shrink:0;
-    border:1px solid var(--line);
+  .toolbar input[type=text] { max-width: 320px; background: var(--bg-panel); }
+  
+  .toolbar select {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13.5px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    outline: none;
+    cursor: pointer;
   }
-  .card-body{flex:1; min-width:0;}
-  .card-name{
-    font-size:15.5px;
-    font-weight:700;
-    margin:0 0 2px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .card-handle{
-    font-family:'IBM Plex Mono',monospace;
-    font-weight:700;
-    font-size:14px;
-    color:var(--rank-color, var(--r-newbie));
-    text-decoration:none;
-    display:inline-block;
-    margin-bottom:6px;
-  }
-  .card-handle:hover{text-decoration:underline;}
-  .card-rank{
-    font-size:11.5px;
-    letter-spacing:.03em;
-    text-transform:capitalize;
-    color:var(--rank-color, var(--r-newbie));
-    margin-bottom:8px;
-  }
-  .card-ratings{
-    display:flex;
-    gap:14px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    color:var(--text-dim);
-  }
-  .card-ratings b{color:var(--text);}
-  .del-btn{
-    position:absolute;
-    top:10px; right:10px;
-    background:transparent;
-    border:none;
-    color:var(--text-dim);
-    font-size:16px;
-    padding:2px 7px;
-    line-height:1;
-    border-radius:5px;
-  }
-  .del-btn:hover{color:var(--wa-red); background:rgba(255,77,77,0.08); box-shadow:none;}
+  .toolbar select:focus { border-color: var(--accent); }
 
-  .empty{
-    text-align:center;
-    padding:60px 20px;
-    color:var(--text-dim);
-    font-family:'IBM Plex Mono',monospace;
-    font-size:13.5px;
+  .matchmaker-btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
   }
-  .empty .verdict{
-    color:var(--text);
-    font-weight:700;
-    letter-spacing:.06em;
-    display:block;
-    margin-bottom:8px;
-    font-size:14px;
+  .matchmaker-btn:hover {
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
   }
 
-  footer{
-    text-align:center;
-    color:var(--text-dim);
-    font-size:12px;
-    padding:24px;
-    border-top:1px solid var(--line);
-    font-family:'IBM Plex Mono',monospace;
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 24px;
+  }
+
+  .card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--rank-color, var(--r-newbie));
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 25px var(--accent-glow);
+  }
+
+  /* Premium Glowing Border Styles for Top Roster Leader */
+  @keyframes leaderGlow {
+    0% { border-color: rgba(255, 179, 0, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+    50% { border-color: rgba(255, 179, 0, 0.8); box-shadow: 0 0 20px rgba(255, 179, 0, 0.25); }
+    100% { border-color: rgba(255, 179, 0, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+  }
+  .card.top-coder-highlight {
+    animation: leaderGlow 3s infinite ease-in-out;
+  }
+  .leader-badge {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #ffb300, #ff8f00);
+    color: #000;
+    font-size: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(255, 143, 0, 0.4);
+    white-space: nowrap;
+  }
+  
+  .avatar-container {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .avatar {
+    width: 64px; height: 64px;
+    border-radius: 12px;
+    background: #131924;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--line);
+  }
+  
+  .card-body { flex: 1; min-width: 0; }
+  
+  .card-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .card-handle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--rank-color, var(--r-newbie));
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .card-handle:hover { text-decoration: underline; }
+  
+  .card-rank {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 0 14px;
+  }
+  
+  .card-ratings {
+    display: flex;
+    gap: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    background: rgba(0, 0, 0, 0.15);
+    padding: 6px 12px;
+    border-radius: 8px;
+    width: max-content;
+  }
+  .card-ratings b { color: #fff; }
+  
+  /* Destructive drop actions exclusively for authorized instances */
+  .del-btn {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 18px;
+    padding: 4px 8px;
+    line-height: 1;
+    border-radius: 8px;
+    cursor: pointer;
+    display: none; 
+    z-index: 5;
+  }
+  body.dev-authorized .del-btn { display: block; }
+  .del-btn:hover { color: var(--wa-red); background: rgba(239, 68, 68, 0.1); }
+
+  .empty {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--text-dim);
+  }
+  .empty .verdict {
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: .02em;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  /* Pure Frontend Dynamic Modals CSS Overlay */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(3, 5, 8, 0.85);
+    backdrop-filter: blur(16px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    z-index: 1000; transition: opacity 0.3s ease;
+    padding: 20px;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: #0b0f17;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    width: 100%; max-width: 650px;
+    max-height: 85vh; overflow-y: auto;
+    padding: 35px; box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; border-bottom: 1px solid var(--line);
+    padding-bottom: 16px;
+  }
+  .modal-title {
+    font-size: 20px; font-weight: 800; color: #fff; margin: 0;
+  }
+  .modal-close {
+    background: transparent; border: none; color: var(--text-dim);
+    font-size: 24px; cursor: pointer; padding: 0 8px; box-shadow: none;
+  }
+  .modal-close:hover { color: #fff; transform: none; }
+  
+  .team-block {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px; margin-bottom: 16px;
+  }
+  .team-tag {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    text-transform: uppercase; color: var(--accent); font-weight: 700;
+    margin-bottom: 12px; display: block;
+  }
+  .team-members-list {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .team-member-item {
+    display: flex; justify-content: space-between; font-size: 14px;
+  }
+  .team-member-handle { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 40px 24px;
+    border-top: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace;
+    background: rgba(0, 0, 0, 0.2);
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -345,10 +586,21 @@
 
 <div class="scanlines"></div>
 
+<!-- Secure Hidden Gate Terminal -->
+<div class="dev-drawer" id="devDrawer">
+  <div class="dev-container">
+    <p class="dev-title">// Root Access Control</p>
+    <div class="dev-form">
+      <input type="password" id="devPassword" class="dev-input" placeholder="Authorization Token...">
+      <button id="devAuthBtn" class="dev-btn">Unlock</button>
+    </div>
+  </div>
+</div>
+
 <header>
-  <div class="eyebrow">Accepted &middot; IUBAT CP Directory</div>
+  <div class="eyebrow">System Live &middot; IUBAT CP Directory</div>
   <h1>IUBAT <span>Competitive</span> Programmers</h1>
-  <p class="sub">A living roster of IUBAT students on Codeforces — ratings pulled live from their profiles.</p>
+  <p class="sub">A clean, real-time portal sync'd with the Codeforces roster database API.</p>
 
   <div class="stats-bar">
     <div class="stat"><div class="num" id="statCount">0</div><div class="lbl">Members</div></div>
@@ -359,27 +611,121 @@
 
 <main>
   <div class="panel">
-    <p class="panel-title">Add a member</p>
+    <p class="panel-title">Secure Registration Terminal</p>
     <form id="addForm">
       <div>
         <label for="fName">Student name</label>
-        <input type="text" id="fName" placeholder="e.g. S.M. Abdullah Ebna Alam Omor" required>
+        <input type="text" id="fName" placeholder="S.M. Abdullah Ebna Alam Omor" required>
       </div>
       <div>
         <label for="fId">Student ID</label>
-        <input type="text" id="fId" placeholder="e.g. 22201234" required>
+        <input type="text" id="fId" placeholder="22201234" required>
       </div>
       <div>
-        <label for="fCf">Codeforces link or handle</label>
-        <input type="text" id="fCf" placeholder="codeforces.com/profile/T0MMY_Vercetti" required>
+        <label for="fCf">Codeforces handle</label>
+        <input type="text" id="fCf" placeholder="T0MMY_Vercetti" required>
       </div>
-      <button type="submit" id="submitBtn">Add card</button>
+      <button type="submit" id="submitBtn">Add member</button>
     </form>
     <div class="status-line" id="statusLine"></div>
   </div>
 
+  <!-- Dynamic YouTube Syllabus Curated Resources Terminal -->
+  <div class="panel">
+    <p class="panel-title">Curated Training Curriculum</p>
+    
+    <div class="resource-section">
+      <label>Complete Syllabus Core Courses</label>
+      <div class="resource-grid">
+        <a href="https://youtube.com/playlist?list=PLxgZQoSe9cg0-p9RHvaf32XoFEHT_2tj2&si=hTFkwbdZRuQWao71" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></div>
+          <div class="resource-info">
+            <p class="resource-name">CP Bootcamp Track</p>
+            <p class="resource-desc">Comprehensive Guide 1</p>
+          </div>
+        </a>
+        <a href="https://youtube.com/playlist?list=PLauivoElc3ggagradg8MfOZreCMmXMmJ-&si=UNu_1As0DhdmYI0q" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></div>
+          <div class="resource-info">
+            <p class="resource-name">Algorithms Syllabus</p>
+            <p class="resource-desc">Comprehensive Guide 2</p>
+          </div>
+        </a>
+        <a href="https://youtube.com/playlist?list=PLfqMhTWNBTe137I_EPQd34TsgV6IO55pt&si=wmZ1Fdck-0s4sfYN" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></div>
+          <div class="resource-info">
+            <p class="resource-name">Data Structures Track</p>
+            <p class="resource-desc">Comprehensive Guide 3</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="resource-section" style="margin-top:28px;">
+      <label>Topic-Specific Playlists</label>
+      <div class="resource-grid">
+        <a href="https://www.youtube.com/playlist?list=PLtfqa971vD5EabgzVvRc5igEglnFBhE94" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+          <div class="resource-info">
+            <p class="resource-name">Topic Module Alpha</p>
+            <p class="resource-desc">Specialized Methods</p>
+          </div>
+        </a>
+        <a href="https://www.youtube.com/playlist?list=PLtfqa971vD5FQIQuAaZe4thK-QGOdAou3" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+          <div class="resource-info">
+            <p class="resource-name">Topic Module Beta</p>
+            <p class="resource-desc">Specialized Methods</p>
+          </div>
+        </a>
+        <a href="https://www.youtube.com/playlist?list=PLtfqa971vD5Fw0Kz0R9BnnjtVrIXbn72u" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+          <div class="resource-info">
+            <p class="resource-name">Topic Module Gamma</p>
+            <p class="resource-desc">Specialized Methods</p>
+          </div>
+        </a>
+        <a href="https://www.youtube.com/playlist?list=PLtfqa971vD5GTQjH9U0H6kiq9cQlFFa5k" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+          <div class="resource-info">
+            <p class="resource-name">Topic Module Delta</p>
+            <p class="resource-desc">Specialized Methods</p>
+          </div>
+        </a>
+        <a href="https://www.youtube.com/playlist?list=PLtfqa971vD5FEBu376PygkVnJ0n-xZwIl" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+          <div class="resource-info">
+            <p class="resource-name">Topic Module Epsilon</p>
+            <p class="resource-desc">Specialized Methods</p>
+          </div>
+        </a>
+        <a href="https://www.youtube.com/playlist?list=PLtfqa971vD5FT6gYRxs0BDH-0WRz1FdCL" target="_blank" rel="noopener" class="resource-card">
+          <div class="resource-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg></div>
+          <div class="resource-info">
+            <p class="resource-name">Topic Module Zeta</p>
+            <p class="resource-desc">Specialized Methods</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <div class="toolbar">
-    <input type="text" id="searchBox" placeholder="Search name or handle...">
+    <div class="toolbar-filters">
+      <input type="text" id="searchBox" placeholder="Filter by keyword...">
+      <select id="rankFilter">
+        <option value="all">Filter: All Ranks</option>
+        <option value="newbie">Newbie (&lt; 1200)</option>
+        <option value="pupil">Pupil (1200-1399)</option>
+        <option value="specialist">Specialist (1400-1599)</option>
+        <option value="expert">Expert (1600-1899)</option>
+        <option value="candidate master">Candidate Master (1900-2099)</option>
+        <option value="master">Master (2100-2299)</option>
+        <option value="grandmaster">Grandmaster+ (&ge; 2300)</option>
+        <option value="unrated">Unrated</option>
+      </select>
+      <button id="matchmakerBtn" class="matchmaker-btn">⚔️ Draft 3-Person Teams</button>
+    </div>
     <select id="sortSelect">
       <option value="rating-desc">Sort: Rating (high → low)</option>
       <option value="rating-asc">Sort: Rating (low → high)</option>
@@ -391,7 +737,18 @@
   <div class="grid" id="cardGrid"></div>
 </main>
 
-<footer>IUBAT Competitive Programmers &middot; data fetched from the Codeforces API &middot; stored locally in this browser</footer>
+<!-- Team Matchmaker Result Modal Overlay Container -->
+<div class="modal-overlay" id="teamModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <p class="modal-title">⚔️ Balanced 3-Person Rosters</p>
+      <button class="modal-close" id="closeModalBtn">&times;</button>
+    </div>
+    <div id="modalTeamsContainer"></div>
+  </div>
+</div>
+
+<footer>IUBAT Competitive Programmers &middot; Cloud Data Layer</footer>
 
 <script>
 const SUPABASE_URL = 'https://zqfzwigipfokwrnzkykj.supabase.co';
@@ -399,6 +756,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseReady = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
 const db = supabaseReady ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+let isDevAuthorized = false;
+let currentTopCoderId = null; 
 
 const RANK_COLORS = [
   { max: 1199, color: 'var(--r-newbie)' },
@@ -416,6 +776,27 @@ function getRankColor(rating){
   const tier = RANK_COLORS.find(t => rating <= t.max);
   return tier ? tier.color : 'var(--r-newbie)';
 }
+
+// Dev Drawer Hotkey Access Listener (Ctrl + Shift + Y)
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'y') {
+    e.preventDefault();
+    document.getElementById('devDrawer').classList.toggle('open');
+    document.getElementById('devPassword').focus();
+  }
+});
+
+document.getElementById('devAuthBtn').addEventListener('click', () => {
+  const pin = document.getElementById('devPassword').value;
+  if(pin === 'IUBATCPC@1991') {
+    isDevAuthorized = true;
+    document.body.classList.add('dev-authorized');
+    document.getElementById('devDrawer').classList.remove('open');
+    alert('Developer status verified. Card cleanup tools mounted.');
+  } else {
+    alert('Invalid authentication signature.');
+  }
+});
 
 async function loadMembers(){
   if(!supabaseReady) return [];
@@ -483,9 +864,11 @@ function renderStats(members){
     document.getElementById('statAvg').textContent = avg;
     const top = rated.reduce((a,b) => a.rating > b.rating ? a : b);
     document.getElementById('statTop').textContent = top.handle;
+    currentTopCoderId = top.id; // Track top coder without changing schema
   } else {
     document.getElementById('statAvg').textContent = '—';
     document.getElementById('statTop').textContent = '—';
+    currentTopCoderId = null;
   }
 }
 
@@ -495,10 +878,17 @@ function cardTemplate(m){
   const maxRating = typeof m.maxRating === 'number' ? m.maxRating : '—';
   const rankLabel = m.rank || 'unrated';
   const avatar = m.avatar || '';
+  
+  const isTopCoder = (m.id === currentTopCoderId && typeof m.rating === 'number');
+  const highlightClass = isTopCoder ? ' top-coder-highlight' : '';
+
   return `
-    <div class="card" style="--rank-color:${color}" data-id="${m.id}">
-      <button class="del-btn" title="Remove" data-remove="${m.id}">&times;</button>
-      ${avatar ? `<img class="avatar" src="${avatar}" alt="${m.handle}">` : `<div class="avatar"></div>`}
+    <div class="card${highlightClass}" style="--rank-color:${color}" data-id="${m.id}">
+      <button class="del-btn" title="Remove secure profile record" data-remove="${m.id}">&times;</button>
+      <div class="avatar-container">
+        ${avatar ? `<img class="avatar" src="${avatar}" alt="${m.handle}">` : `<div class="avatar"></div>`}
+        ${isTopCoder ? `<div class="leader-badge">👑 Top Coder</div>` : ''}
+      </div>
       <div class="card-body">
         <p class="card-name">${escapeHtml(m.name)}</p>
         <a class="card-handle" href="https://codeforces.com/profile/${encodeURIComponent(m.handle)}" target="_blank" rel="noopener">${escapeHtml(m.handle)}</a>
@@ -519,18 +909,13 @@ function escapeHtml(str){
 }
 
 let cachedMembers = [];
+let currentFilteredList = [];
 
 async function render(){
   const grid = document.getElementById('cardGrid');
 
   if(!supabaseReady){
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
-      <span class="verdict" style="color:var(--wa-red)">Database not configured</span>
-      Open index.html and paste your Supabase URL and anon key at the top of the script.
-    </div>`;
-    document.getElementById('statCount').textContent = '0';
-    document.getElementById('statAvg').textContent = '—';
-    document.getElementById('statTop').textContent = '—';
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><span class="verdict" style="color:var(--wa-red)">Database Disconnected</span></div>`;
     return;
   }
 
@@ -539,48 +924,106 @@ async function render(){
   renderStats(members);
 
   const query = document.getElementById('searchBox').value.trim().toLowerCase();
+  const rankSelection = document.getElementById('rankFilter').value;
   const sortMode = document.getElementById('sortSelect').value;
 
-  let filtered = members.filter(m =>
-    !query ||
-    m.name.toLowerCase().includes(query) ||
-    m.handle.toLowerCase().includes(query)
-  );
-
-  if(filtered.length === 0){
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
-      <span class="verdict">${members.length === 0 ? 'No members yet' : 'No matches'}</span>
-      ${members.length === 0 ? 'Add the first card using the form above.' : 'Try a different search term.'}
-    </div>`;
-  } else {
-    if(sortMode === 'rating-desc'){
-      filtered.sort((a,b) => (b.rating ?? -1) - (a.rating ?? -1));
-    } else if(sortMode === 'rating-asc'){
-      filtered.sort((a,b) => (a.rating ?? 99999) - (b.rating ?? 99999));
-    } else if(sortMode === 'name-asc'){
-      filtered.sort((a,b) => a.name.localeCompare(b.name));
-    } else if(sortMode === 'recent'){
-      filtered.sort((a,b) => b.addedAt - a.addedAt);
+  currentFilteredList = members.filter(m => {
+    const matchesKeyword = !query || m.name.toLowerCase().includes(query) || m.handle.toLowerCase().includes(query);
+    
+    let matchesRank = true;
+    if (rankSelection !== 'all') {
+      const currentRank = (m.rank || 'unrated').toLowerCase();
+      if (rankSelection === 'grandmaster+') {
+        matchesRank = currentRank.includes('grandmaster') || currentRank.includes('target');
+      } else {
+        matchesRank = currentRank === rankSelection;
+      }
     }
     
-    grid.innerHTML = filtered.map(cardTemplate).join('');
+    return matchesKeyword && matchesRank;
+  });
+
+  if(currentFilteredList.length === 0){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <span class="verdict">${members.length === 0 ? 'No Members Found' : 'No Roster Matches'}</span>
+    </div>`;
+  } else {
+    if(sortMode === 'rating-desc') currentFilteredList.sort((a,b) => (b.rating ?? -1) - (a.rating ?? -1));
+    else if(sortMode === 'rating-asc') currentFilteredList.sort((a,b) => (a.rating ?? 99999) - (b.rating ?? 99999));
+    else if(sortMode === 'name-asc') currentFilteredList.sort((a,b) => a.name.localeCompare(b.name));
+    else if(sortMode === 'recent') currentFilteredList.sort((a,b) => b.addedAt - a.addedAt);
+    
+    grid.innerHTML = currentFilteredList.map(cardTemplate).join('');
   }
 
   grid.querySelectorAll('[data-remove]').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
       const id = btn.getAttribute('data-remove');
+      if(!confirm("Are you sure you want to permanently drop this profile record?")) return;
       btn.disabled = true;
       try{
         await deleteMember(id);
         await render();
       }catch(err){
         console.error(err);
-        alert('Could not remove this card. Check your connection and try again.');
         btn.disabled = false;
       }
     });
   });
 }
+
+// Snake Placement Draft Algorithm for Fair 3-Person Teams
+document.getElementById('matchmakerBtn').addEventListener('click', () => {
+  const ratedCoders = currentFilteredList.filter(m => typeof m.rating === 'number');
+  
+  if (ratedCoders.length < 3) {
+    alert("You need at least 3 rated programmers visible in the grid to draft teams!");
+    return;
+  }
+
+  // Sort down descending
+  ratedCoders.sort((a, b) => b.rating - a.rating);
+
+  const teamCount = Math.ceil(ratedCoders.length / 3);
+  const teams = Array.from({ length: teamCount }, () => []);
+
+  // Snake distribution loop
+  for (let i = 0; i < ratedCoders.length; i++) {
+    const round = Math.floor(i / teamCount);
+    const index = round % 2 === 0 ? (i % teamCount) : (teamCount - 1 - (i % teamCount));
+    if (teams[index]) {
+      teams[index].push(ratedCoders[i]);
+    }
+  }
+
+  // Render out the teams modal content
+  const modalContainer = document.getElementById('modalTeamsContainer');
+  modalContainer.innerHTML = teams.map((team, idx) => {
+    const totalRating = team.reduce((acc, current) => acc + current.rating, 0);
+    const avgRating = Math.round(totalRating / team.length);
+    
+    return `
+      <div class="team-block">
+        <span class="team-tag">Squad Tier ${idx + 1} &middot; Avg Rating: ${avgRating}</span>
+        <div class="team-members-list">
+          ${team.map(m => `
+            <div class="team-member-item">
+              <span>${escapeHtml(m.name)}</span>
+              <span class="team-member-handle" style="color:${getRankColor(m.rating)}">${escapeHtml(m.handle)} (${m.rating})</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('teamModal').classList.add('active');
+});
+
+document.getElementById('closeModalBtn').addEventListener('click', () => {
+  document.getElementById('teamModal').classList.remove('active');
+});
 
 document.getElementById('addForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -589,30 +1032,16 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   const cfInput = document.getElementById('fCf').value.trim();
   const submitBtn = document.getElementById('submitBtn');
 
-  if(!supabaseReady){
-    setStatus('Database not configured yet — see the setup instructions.', 'err');
-    return;
-  }
-
-  if(!name || !studentId || !cfInput){
-    setStatus('Fill in all fields.', 'err');
-    return;
-  }
-
   const handle = extractHandle(cfInput);
-  if(!handle){
-    setStatus('Could not read a handle from that input.', 'err');
-    return;
-  }
+  if(!handle) return setStatus('Invalid input handle.', 'err');
 
   submitBtn.disabled = true;
-  setStatus(`Fetching ${handle} from Codeforces...`, 'pending');
+  setStatus(`Pinging user endpoint...`, 'pending');
 
   try{
     const user = await fetchCfUser(handle);
-
     if(cachedMembers.some(m => m.handle.toLowerCase() === user.handle.toLowerCase())){
-      setStatus(`${user.handle} is already on the roster.`, 'err');
+      setStatus(`${user.handle} already tracked.`, 'err');
       submitBtn.disabled = false;
       return;
     }
@@ -627,22 +1056,19 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
       avatar: user.avatar && user.avatar.startsWith('http') ? user.avatar : (user.titlePhoto || '')
     });
 
-    setStatus(`Added ${user.handle} (${user.rank || 'unrated'}).`, 'ok');
+    setStatus(`Success! Sync complete for ${user.handle}`, 'ok');
     document.getElementById('addForm').reset();
     await render();
   }catch(err){
     console.error(err);
-    if(err && err.message && err.message.includes('duplicate')){
-      setStatus(`${handle} is already on the roster.`, 'err');
-    } else {
-      setStatus(`Couldn't find that handle on Codeforces, or the database rejected the save.`, 'err');
-    }
+    setStatus(`Database record transaction failed.`, 'err');
   }finally{
     submitBtn.disabled = false;
   }
 });
 
 document.getElementById('searchBox').addEventListener('input', render);
+document.getElementById('rankFilter').addEventListener('change', render);
 document.getElementById('sortSelect').addEventListener('change', render);
 
 render();
