@@ -221,6 +221,11 @@
     margin-right: 20px;
   }
 
+  .nav-btn-container {
+    display: flex; 
+    gap: 10px;
+  }
+
   .courses-nav-btn {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
@@ -238,6 +243,24 @@
     color: #000;
     box-shadow: 0 0 15px var(--accent-glow);
   }
+  
+  .platforms-nav-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #3b82f6;
+    text-decoration: none;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.03);
+    white-space: nowrap;
+  }
+  .platforms-nav-btn:hover {
+    background: #3b82f6;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+  }
 
   form {
     display: grid;
@@ -248,9 +271,10 @@
   @media (max-width: 900px) {
     form { grid-template-columns: 1fr; gap: 16px; }
     form button { width: 100%; margin-top: 10px; }
-    .panel-header-wrapper { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .panel-header-wrapper { flex-direction: column; align-items: flex-start; gap: 16px; }
     .panel-title::after { margin-right: 0; }
-    .courses-nav-btn { width: 100%; text-align: center; }
+    .nav-btn-container { width: 100%; }
+    .courses-nav-btn, .platforms-nav-btn { flex: 1; text-align: center; }
   }
   
   label {
@@ -583,10 +607,13 @@
 
 <main>
   <div class="panel">
-    <!-- Title Header with Courses Navigation Button Link -->
+    <!-- Dynamic Navigation Suite Header -->
     <div class="panel-header-wrapper">
       <p class="panel-title">Secure Registration Terminal</p>
-      <a href="video-resources.html" class="courses-nav-btn">📚 Courses →</a>
+      <div class="nav-btn-container">
+        <a href="platforms.html" class="platforms-nav-btn">🌐 Platforms →</a>
+        <a href="video-resources.html" class="courses-nav-btn">📚 Courses →</a>
+      </div>
     </div>
 
     <form id="addForm">
