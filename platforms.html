@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice Platforms - IUBAT CP</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #05070a;
+    --bg-panel: rgba(15, 20, 30, 0.7);
+    --bg-card: rgba(11, 15, 23, 0.85);
+    --line: rgba(255, 255, 255, 0.06);
+    --line-active: rgba(59, 130, 246, 0.3);
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
+    --accent: #3b82f6; 
+    --accent-glow: rgba(59, 130, 246, 0.15);
+    --ac-green: #10b981; 
+    --wa-red: #ef4444;
+  }
+
+  * { box-sizing: border-box; transition: all 0.2s ease-in-out; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: 
+      radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.08), transparent 50%),
+      radial-gradient(circle at 20% 70%, rgba(255, 179, 0, 0.06), transparent 50%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    backdrop-filter: blur(100px);
+  }
+
+  .scanlines {
+    pointer-events: none;
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.005) 0px, rgba(255,255,255,0.005) 1px, transparent 1px, transparent 4px);
+    z-index: 10;
+  }
+
+  /* Admin Control Tray */
+  .dev-drawer {
+    background: #0b0f17;
+    border-bottom: 2px solid var(--wa-red);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 100;
+  }
+  .dev-drawer.open { max-height: 150px; }
+  .dev-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 20px 24px;
+  }
+  .dev-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--wa-red);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+  }
+  .dev-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .dev-input {
+    background: rgba(0,0,0,0.4) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .dev-input:focus { border-color: var(--wa-red) !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.15) !important;}
+  .dev-btn {
+    background: var(--wa-red);
+    color: white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2);
+  }
+  .dev-btn:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
+
+  header {
+    position: relative;
+    padding: 60px 24px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .back-btn {
+    position: absolute;
+    top: 30px; left: 30px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+  }
+  .back-btn:hover { color: #fff; border-color: var(--text-dim); }
+  
+  h1 {
+    font-weight: 800;
+    font-size: clamp(32px, 5vw, 46px);
+    letter-spacing: -0.03em;
+    margin: 0 0 12px;
+    color: #fff;
+  }
+  h1 span {
+    color: var(--accent);
+    text-shadow: 0 0 40px var(--accent-glow);
+  }
+
+  main {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+  }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 35px;
+    margin-bottom: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    backdrop-filter: blur(12px);
+  }
+
+  .panel-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+  }
+  .panel-title::after {
+    content: "";
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--line-active), transparent);
+  }
+
+  .resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .resource-card {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-decoration: none;
+    color: var(--text);
+    position: relative;
+  }
+  .resource-card:hover {
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  /* Modern Logo Container wrapper styling */
+  .resource-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #111622;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    overflow: hidden;
+  }
+  .resource-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .resource-info { min-width: 0; flex: 1; }
+  .resource-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .resource-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  .del-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 16px;
+    cursor: pointer;
+    display: none;
+    z-index: 10;
+  }
+  body.dev-authorized .del-btn { display: block; }
+  .del-btn:hover { color: var(--wa-red); }
+
+  .empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-dim);
+    font-size: 14px;
+    grid-column: 1 / -1;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<div class="scanlines"></div>
+
+<!-- Admin Terminal Console Drawer -->
+<div class="dev-drawer" id="devDrawer">
+  <div class="dev-container">
+    <p class="dev-title">// Platform Control Center Access</p>
+    <div class="dev-form" id="authSection">
+      <input type="password" id="devPassword" class="dev-input" placeholder="Authorization Token...">
+      <button id="devAuthBtn" class="dev-btn">Unlock Admin</button>
+    </div>
+    
+    <div class="dev-form" id="platformFormSection" style="display:none;">
+      <input type="text" id="pName" class="dev-input" placeholder="Platform Name (e.g., Codeforces)..." style="width:250px;">
+      <input type="text" id="pLink" class="dev-input" placeholder="Target URL (e.g., https://codeforces.com)..." style="width:450px;">
+      <button id="savePlatformBtn" class="dev-btn" style="background:var(--ac-green)">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <a href="index.html" class="back-btn">← Back to Roster</a>
+  <h1>Competitive Coding <span>Platforms</span></h1>
+</header>
+
+<main>
+  <div class="panel">
+    <p class="panel-title">Active Practice Arenas</p>
+    <div class="resource-grid" id="platformContainer">
+      <div class="empty">Establishing link with database node...</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://zqfzwigipfokwrnzkykj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxZnp3aWdpcGZva3dybnpreWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDg2MjgsImV4cCI6MjA5OTUyNDYyOH0.KiA3CAv462bzOZxQBzZrZdzR-zNEwBAL8bxPciHYqJA';
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let isDevAuthorized = false;
+
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'y') {
+    e.preventDefault();
+    document.getElementById('devDrawer').classList.toggle('open');
+    if(!isDevAuthorized) document.getElementById('devPassword').focus();
+  }
+});
+
+document.getElementById('devAuthBtn').addEventListener('click', () => {
+  const pin = document.getElementById('devPassword').value;
+  if(pin === 'IUBATCPC@1991') {
+    isDevAuthorized = true;
+    document.body.classList.add('dev-authorized');
+    document.getElementById('authSection').style.display = 'none';
+    document.getElementById('platformFormSection').style.display = 'flex';
+  } else {
+    alert('Invalid token confirmation.');
+  }
+});
+
+async function renderPlatforms() {
+  const container = document.getElementById('platformContainer');
+  const { data: platforms, error } = await db.from('platforms').select('*').order('name', { ascending: true });
+
+  if (error) {
+    container.innerHTML = `<div class="empty" style="color:var(--wa-red)">Failed to pull data.</div>`;
+    return;
+  }
+
+  if (platforms.length === 0) {
+    container.innerHTML = '<div class="empty">No coding arenas cataloged. Press Ctrl+Shift+Y to add one.</div>';
+    return;
+  }
+
+  container.innerHTML = platforms.map(p => {
+    // Clean URL to pass domain parameters into the favicon api engine smoothly
+    let cleanUrl = p.link.trim();
+    if (!/^https?:\/\//i.test(cleanUrl)) {
+      cleanUrl = 'https://' + cleanUrl;
+    }
+    
+    // Fallback URL generator for official brand graphics fetching
+    const logoSrc = `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(cleanUrl)}`;
+
+    return `
+      <a href="${cleanUrl}" target="_blank" rel="noopener" class="resource-card">
+        <button class="del-btn" title="Delete entry" onclick="event.preventDefault(); dropPlatform(${p.id});">&times;</button>
+        <div class="resource-icon">
+          <img src="${logoSrc}" alt="${escapeHtml(p.name)} Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%233b82f6%22><path d=%22M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z%22/></svg>'">
+        </div>
+        <div class="resource-info">
+          <p class="resource-name">${escapeHtml(p.name)}</p>
+          <p class="resource-desc">Go to Platform Link →</p>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+document.getElementById('savePlatformBtn').addEventListener('click', async () => {
+  let name = document.getElementById('pName').value.trim();
+  let link = document.getElementById('pLink').value.trim();
+
+  if(!name || !link) return alert('All parameters required.');
+  
+  // Format the link automatically if admin skips typing protocol details
+  if (!/^https?:\/\//i.test(link)) {
+    link = 'https://' + link;
+  }
+
+  const { error } = await db.from('platforms').insert([{ name, link }]);
+  if (error) { alert(`Error saving structure: ${error.message}`); } 
+  else {
+    document.getElementById('pName').value = ''; document.getElementById('pLink').value = '';
+    await renderPlatforms();
+  }
+});
+
+window.dropPlatform = async function(id) {
+  if(!confirm("Drop this database record layout?")) return;
+  const { error } = await db.from('platforms').delete().eq('id', id);
+  if(error) alert('Error executing deletion action.'); else await renderPlatforms();
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str ?? '';
+  return d.innerHTML;
+}
+
+renderPlatforms();
+</script>
+</body>
+</html>
