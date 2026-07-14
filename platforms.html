@@ -98,9 +98,8 @@
 
   header {
     position: relative;
-    padding: 60px 24px 40px;
+    padding: 60px 24px 20px;
     text-align: center;
-    border-bottom: 1px solid var(--line);
   }
 
   .back-btn {
@@ -129,10 +128,42 @@
     text-shadow: 0 0 40px var(--accent-glow);
   }
 
+  /* Search Engine UI Wrappers */
+  .search-wrapper {
+    max-width: 500px;
+    margin: 20px auto 40px;
+    position: relative;
+    padding: 0 24px;
+  }
+  .search-input {
+    width: 100%;
+    background: rgba(15, 20, 30, 0.6);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 14px 16px 14px 44px;
+    border-radius: 12px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    backdrop-filter: blur(8px);
+  }
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+  }
+  .search-icon-svg {
+    position: absolute;
+    left: 40px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+    width: 18px; height: 18px;
+  }
+
   main {
     max-width: 1140px;
     margin: 0 auto;
-    padding: 40px 24px 100px;
+    padding: 0 24px 100px;
   }
 
   .panel {
@@ -186,7 +217,6 @@
     transform: translateY(-2px);
   }
   
-  /* Modern Logo Container wrapper styling */
   .resource-icon {
     flex-shrink: 0;
     width: 44px;
@@ -242,8 +272,40 @@
     font-size: 14px;
     grid-column: 1 / -1;
   }
+
+  /* Skeleton Loading Frames */
+  .skeleton-card {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    pointer-events: none;
+  }
+  .skeleton-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+  }
+  .skeleton-info { flex: 1; }
+  .skeleton-line {
+    height: 12px;
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 8px;
+    border-radius: 4px;
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+  .skeleton-line.short { width: 50%; margin-bottom: 0; height: 10px; }
+  @keyframes pulse {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+    100% { opacity: 0.3; }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -271,11 +333,20 @@
   <h1>Competitive Coding <span>Platforms</span></h1>
 </header>
 
+<!-- Filter/Search Utility Bar Component -->
+<div class="search-wrapper">
+  <i data-lucide="search" class="search-icon-svg"></i>
+  <input type="text" id="searchBar" class="search-input" placeholder="Search practice nodes...">
+</div>
+
 <main>
   <div class="panel">
     <p class="panel-title">Active Practice Arenas</p>
     <div class="resource-grid" id="platformContainer">
-      <div class="empty">Establishing link with database node...</div>
+      <!-- Standard CSS Glow Skeletons -->
+      <div class="skeleton-card"><div class="skeleton-icon"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton-icon"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton-icon"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
     </div>
   </div>
 </main>
@@ -286,6 +357,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let isDevAuthorized = false;
+let cachedPlatforms = []; // Keeps search instant without running duplicate DB tasks
 
 window.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'y') {
@@ -307,28 +379,21 @@ document.getElementById('devAuthBtn').addEventListener('click', () => {
   }
 });
 
-async function renderPlatforms() {
+// Presentation rendering layer
+function displayPlatforms(list) {
   const container = document.getElementById('platformContainer');
-  const { data: platforms, error } = await db.from('platforms').select('*').order('name', { ascending: true });
 
-  if (error) {
-    container.innerHTML = `<div class="empty" style="color:var(--wa-red)">Failed to pull data.</div>`;
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty">No matching arenas cataloged.</div>';
     return;
   }
 
-  if (platforms.length === 0) {
-    container.innerHTML = '<div class="empty">No coding arenas cataloged. Press Ctrl+Shift+Y to add one.</div>';
-    return;
-  }
-
-  container.innerHTML = platforms.map(p => {
-    // Clean URL to pass domain parameters into the favicon api engine smoothly
+  container.innerHTML = list.map(p => {
     let cleanUrl = p.link.trim();
     if (!/^https?:\/\//i.test(cleanUrl)) {
       cleanUrl = 'https://' + cleanUrl;
     }
     
-    // Fallback URL generator for official brand graphics fetching
     const logoSrc = `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(cleanUrl)}`;
 
     return `
@@ -346,13 +411,36 @@ async function renderPlatforms() {
   }).join('');
 }
 
+async function renderPlatforms() {
+  const container = document.getElementById('platformContainer');
+  const { data: platforms, error } = await db.from('platforms').select('*').order('name', { ascending: true });
+
+  if (error) {
+    container.innerHTML = `<div class="empty" style="color:var(--wa-red)">Failed to pull data.</div>`;
+    return;
+  }
+
+  cachedPlatforms = platforms;
+  displayPlatforms(platforms);
+}
+
+// Client-Side Live Search Engine Listener
+document.getElementById('searchBar').addEventListener('input', (e) => {
+  const searchVal = e.target.value.toLowerCase().trim();
+  if (!searchVal) {
+    displayPlatforms(cachedPlatforms);
+    return;
+  }
+  const matching = cachedPlatforms.filter(p => p.name.toLowerCase().includes(searchVal));
+  displayPlatforms(matching);
+});
+
 document.getElementById('savePlatformBtn').addEventListener('click', async () => {
   let name = document.getElementById('pName').value.trim();
   let link = document.getElementById('pLink').value.trim();
 
   if(!name || !link) return alert('All parameters required.');
   
-  // Format the link automatically if admin skips typing protocol details
   if (!/^https?:\/\//i.test(link)) {
     link = 'https://' + link;
   }
@@ -360,7 +448,9 @@ document.getElementById('savePlatformBtn').addEventListener('click', async () =>
   const { error } = await db.from('platforms').insert([{ name, link }]);
   if (error) { alert(`Error saving structure: ${error.message}`); } 
   else {
-    document.getElementById('pName').value = ''; document.getElementById('pLink').value = '';
+    document.getElementById('pName').value = ''; 
+    document.getElementById('pLink').value = '';
+    document.getElementById('searchBar').value = '';
     await renderPlatforms();
   }
 });
@@ -368,7 +458,10 @@ document.getElementById('savePlatformBtn').addEventListener('click', async () =>
 window.dropPlatform = async function(id) {
   if(!confirm("Drop this database record layout?")) return;
   const { error } = await db.from('platforms').delete().eq('id', id);
-  if(error) alert('Error executing deletion action.'); else await renderPlatforms();
+  if(error) alert('Error executing deletion action.'); else {
+    document.getElementById('searchBar').value = '';
+    await renderPlatforms();
+  }
 }
 
 function escapeHtml(str) {
@@ -377,6 +470,8 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
+// Init tools
+lucide.createIcons();
 renderPlatforms();
 </script>
 </body>
