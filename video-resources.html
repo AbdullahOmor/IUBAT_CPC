@@ -98,9 +98,8 @@
 
   header {
     position: relative;
-    padding: 60px 24px 40px;
+    padding: 60px 24px 20px;
     text-align: center;
-    border-bottom: 1px solid var(--line);
   }
 
   .back-btn {
@@ -129,10 +128,42 @@
     text-shadow: 0 0 40px var(--accent-glow);
   }
 
+  /* Utility Toolbar (Search) */
+  .search-wrapper {
+    max-width: 500px;
+    margin: 20px auto 40px;
+    position: relative;
+    padding: 0 24px;
+  }
+  .search-input {
+    width: 100%;
+    background: rgba(15, 20, 30, 0.6);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 14px 16px 14px 44px;
+    border-radius: 12px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    backdrop-filter: blur(8px);
+  }
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(255, 179, 0, 0.1);
+  }
+  .search-icon-svg {
+    position: absolute;
+    left: 40px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+    width: 18px; height: 18px;
+  }
+
   main {
     max-width: 1140px;
     margin: 0 auto;
-    padding: 40px 24px 100px;
+    padding: 0 24px 100px;
   }
 
   .panel {
@@ -195,8 +226,8 @@
     align-items: center;
     justify-content: center;
     color: var(--accent);
-    font-size: 20px;
   }
+  .resource-icon svg { width: 22px; height: 22px; }
   .resource-info { min-width: 0; flex: 1; }
   .resource-name {
     font-size: 14px;
@@ -232,8 +263,41 @@
     font-size: 14px;
     grid-column: 1 / -1;
   }
+
+  /* Skeleton Loading Styles */
+  .skeleton-card {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    pointer-events: none;
+  }
+  .skeleton-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+  }
+  .skeleton-info { flex: 1; }
+  .skeleton-line {
+    height: 12px;
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 8px;
+    border-radius: 4px;
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+  .skeleton-line.short { width: 60%; margin-bottom: 0; height: 10px; }
+  @keyframes pulse {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+    100% { opacity: 0.3; }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- Added Lucide Icons Library for Professional Tech UI Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -265,12 +329,20 @@
   <h1>Curated <span>Training</span> Curriculum</h1>
 </header>
 
+<!-- Added Filter/Search Feature -->
+<div class="search-wrapper">
+  <i data-lucide="search" class="search-icon-svg"></i>
+  <input type="text" id="searchBar" class="search-input" placeholder="Filter nodes by topic or keyword...">
+</div>
+
 <main>
   <!-- Category 1: Core Syllabus Courses -->
   <div class="panel">
     <p class="panel-title">Complete Syllabus Core Courses</p>
     <div class="resource-grid" id="coreContainer">
-      <div class="empty">Loading connected nodes...</div>
+      <!-- Generated Skeleton Loaders -->
+      <div class="skeleton-card"><div class="skeleton-icon"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton-icon"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
     </div>
   </div>
 
@@ -278,7 +350,9 @@
   <div class="panel">
     <p class="panel-title">Topic-Specific Playlists</p>
     <div class="resource-grid" id="topicContainer">
-      <div class="empty">Loading connected nodes...</div>
+      <!-- Generated Skeleton Loaders -->
+      <div class="skeleton-card"><div class="skeleton-icon"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton-icon"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
     </div>
   </div>
 </main>
@@ -290,6 +364,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let isDevAuthorized = false;
+let localCoursesCached = []; // Client runtime storage for non-destructive searching
 
 // Handle Access Drawer Hotkey Action (Ctrl + Shift + Y)
 window.addEventListener('keydown', (e) => {
@@ -320,23 +395,22 @@ async function fetchCourses() {
     console.error(error);
     return [];
   }
+  localCoursesCached = data; // Sync cache for lightning-fast frontend mutations
   return data;
 }
 
-// Render dynamic items into HTML categories
-async function renderCourses() {
-  const courses = await fetchCourses();
-  
+// Render filtered or complete array lists inside panels
+function displayCourses(coursesList) {
   const coreContainer = document.getElementById('coreContainer');
   const topicContainer = document.getElementById('topicContainer');
   
-  const coreCourses = courses.filter(c => c.category === 'core');
-  const topicCourses = courses.filter(c => c.category === 'topic');
+  const coreCourses = coursesList.filter(c => c.category === 'core');
+  const topicCourses = coursesList.filter(c => c.category === 'topic');
   
   const cardHtml = (c) => `
     <a href="${c.link}" target="_blank" rel="noopener" class="resource-card" data-id="${c.id}">
       <button class="del-btn" title="Delete playlist resource" onclick="event.preventDefault(); dropCourse(${c.id});">&times;</button>
-      <div class="resource-icon">📺</div>
+      <div class="resource-icon"><i data-lucide="youtube"></i></div>
       <div class="resource-info">
         <p class="resource-name">${escapeHtml(c.title)}</p>
         <p class="resource-desc">${escapeHtml(c.description)}</p>
@@ -344,9 +418,31 @@ async function renderCourses() {
     </a>
   `;
 
-  coreContainer.innerHTML = coreCourses.length ? coreCourses.map(cardHtml).join('') : '<div class="empty">No Core Track entries found.</div>';
-  topicContainer.innerHTML = topicCourses.length ? topicCourses.map(cardHtml).join('') : '<div class="empty">No Module entries found.</div>';
+  coreContainer.innerHTML = coreCourses.length ? coreCourses.map(cardHtml).join('') : '<div class="empty">No matching Core Track entries found.</div>';
+  topicContainer.innerHTML = topicCourses.length ? topicCourses.map(cardHtml).join('') : '<div class="empty">No matching Module entries found.</div>';
+  
+  // Re-render Lucide icons injected via innerHTML matrix string
+  lucide.createIcons();
 }
+
+async function renderCourses() {
+  const courses = await fetchCourses();
+  displayCourses(courses);
+}
+
+// Client-Side Search Functionality (Pure client mutation - Zero DB touch)
+document.getElementById('searchBar').addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase().trim();
+  if(!query) {
+    displayCourses(localCoursesCached);
+    return;
+  }
+  const filtered = localCoursesCached.filter(c => 
+    c.title.toLowerCase().includes(query) || 
+    c.description.toLowerCase().includes(query)
+  );
+  displayCourses(filtered);
+});
 
 // Add a new Course to Database
 document.getElementById('saveCourseBtn').addEventListener('click', async () => {
@@ -366,10 +462,10 @@ document.getElementById('saveCourseBtn').addEventListener('click', async () => {
     alert('Database sync transaction failed.');
     console.error(error);
   } else {
-    // Reset Form Fields
     document.getElementById('cTitle').value = '';
     document.getElementById('cDesc').value = '';
     document.getElementById('cLink').value = '';
+    document.getElementById('searchBar').value = ''; 
     await renderCourses();
   }
 });
@@ -381,6 +477,7 @@ window.dropCourse = async function(id) {
   if(error) {
     alert('Delete transaction failed.');
   } else {
+    document.getElementById('searchBar').value = '';
     await renderCourses();
   }
 }
@@ -392,6 +489,7 @@ function escapeHtml(str) {
 }
 
 // Initialize System Engine
+lucide.createIcons();
 renderCourses();
 </script>
 </body>
