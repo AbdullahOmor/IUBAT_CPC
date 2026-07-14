@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training Curriculum - IUBAT CP</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #05070a;
+    --bg-panel: rgba(15, 20, 30, 0.7);
+    --bg-card: rgba(11, 15, 23, 0.85);
+    --line: rgba(255, 255, 255, 0.06);
+    --line-active: rgba(255, 179, 0, 0.3);
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
+    --accent: #ffb300; 
+    --accent-glow: rgba(255, 179, 0, 0.15);
+    --ac-green: #10b981; 
+    --wa-red: #ef4444;
+  }
+
+  * { box-sizing: border-box; transition: all 0.2s ease-in-out; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: 
+      radial-gradient(circle at 80% 20%, rgba(255, 179, 0, 0.08), transparent 50%),
+      radial-gradient(circle at 20% 70%, rgba(59, 130, 246, 0.06), transparent 50%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    backdrop-filter: blur(100px);
+  }
+
+  .scanlines {
+    pointer-events: none;
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.005) 0px, rgba(255,255,255,0.005) 1px, transparent 1px, transparent 4px);
+    z-index: 10;
+  }
+
+  /* Dev Dashboard Drawer for Course Management */
+  .dev-drawer {
+    background: #0b0f17;
+    border-bottom: 2px solid var(--wa-red);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 100;
+  }
+  .dev-drawer.open { max-height: 250px; }
+  .dev-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 20px 24px;
+  }
+  .dev-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--wa-red);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+  }
+  .dev-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .dev-input {
+    background: rgba(0,0,0,0.4) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .dev-input:focus { border-color: var(--wa-red) !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.15) !important;}
+  .dev-btn {
+    background: var(--wa-red);
+    color: white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2);
+  }
+  .dev-btn:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
+
+  header {
+    position: relative;
+    padding: 60px 24px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .back-btn {
+    position: absolute;
+    top: 30px; left: 30px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+  }
+  .back-btn:hover { color: #fff; border-color: var(--text-dim); }
+  
+  h1 {
+    font-weight: 800;
+    font-size: clamp(32px, 5vw, 46px);
+    letter-spacing: -0.03em;
+    margin: 0 0 12px;
+    color: #fff;
+  }
+  h1 span {
+    color: var(--accent);
+    text-shadow: 0 0 40px var(--accent-glow);
+  }
+
+  main {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+  }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 35px;
+    margin-bottom: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    backdrop-filter: blur(12px);
+  }
+
+  .panel-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+  }
+  .panel-title::after {
+    content: "";
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--line-active), transparent);
+  }
+
+  .resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .resource-card {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-decoration: none;
+    color: var(--text);
+    position: relative;
+  }
+  .resource-card:hover {
+    border-color: rgba(255, 179, 0, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 179, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  .resource-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(255, 179, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 20px;
+  }
+  .resource-info { min-width: 0; flex: 1; }
+  .resource-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .resource-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  .del-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 16px;
+    cursor: pointer;
+    display: none;
+  }
+  body.dev-authorized .del-btn { display: block; }
+  .del-btn:hover { color: var(--wa-red); }
+
+  .empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-dim);
+    font-size: 14px;
+    grid-column: 1 / -1;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<div class="scanlines"></div>
+
+<!-- Hidden Gate Control for Adding Playlists (Ctrl + Shift + Y) -->
+<div class="dev-drawer" id="devDrawer">
+  <div class="dev-container">
+    <p class="dev-title">// Add New Course Playlist</p>
+    <div class="dev-form" id="authSection">
+      <input type="password" id="devPassword" class="dev-input" placeholder="Authorization Token...">
+      <button id="devAuthBtn" class="dev-btn">Unlock Admin</button>
+    </div>
+    <div class="dev-form" id="courseFormSection" style="display:none; margin-top:10px;">
+      <input type="text" id="cTitle" class="dev-input" placeholder="e.g., Graph Theory Basics" style="width:200px;">
+      <input type="text" id="cDesc" class="dev-input" placeholder="e.g., Comprehensive Guide 1" style="width:200px;">
+      <input type="text" id="cLink" class="dev-input" placeholder="YouTube Playlist URL..." style="width:300px;">
+      <select id="cCategory" class="dev-input" style="background:#000; color:#fff;">
+        <option value="core">Core Course</option>
+        <option value="topic">Topic-Specific</option>
+      </select>
+      <button id="saveCourseBtn" class="dev-btn" style="background:var(--ac-green)">Save Playlist</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <a href="index.html" class="back-btn">← Back to Roster</a>
+  <h1>Curated <span>Training</span> Curriculum</h1>
+</header>
+
+<main>
+  <!-- Category 1: Core Syllabus Courses -->
+  <div class="panel">
+    <p class="panel-title">Complete Syllabus Core Courses</p>
+    <div class="resource-grid" id="coreContainer">
+      <div class="empty">Loading connected nodes...</div>
+    </div>
+  </div>
+
+  <!-- Category 2: Topic Specific Playlists -->
+  <div class="panel">
+    <p class="panel-title">Topic-Specific Playlists</p>
+    <div class="resource-grid" id="topicContainer">
+      <div class="empty">Loading connected nodes...</div>
+    </div>
+  </div>
+</main>
+
+<script>
+// Supabase Pipeline Credentials Config matches your Roster Database Profile
+const SUPABASE_URL = 'https://zqfzwigipfokwrnzkykj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxZnp3aWdpcGZva3dybnpreWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDg2MjgsImV4cCI6MjA5OTUyNDYyOH0.KiA3CAv462bzOZxQBzZrZdzR-zNEwBAL8bxPciHYqJA';
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let isDevAuthorized = false;
+
+// Handle Access Drawer Hotkey Action (Ctrl + Shift + Y)
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'y') {
+    e.preventDefault();
+    document.getElementById('devDrawer').classList.toggle('open');
+    if(!isDevAuthorized) document.getElementById('devPassword').focus();
+  }
+});
+
+// Authenticate Admin Session
+document.getElementById('devAuthBtn').addEventListener('click', () => {
+  const pin = document.getElementById('devPassword').value;
+  if(pin === 'IUBATCPC@1991') {
+    isDevAuthorized = true;
+    document.body.classList.add('dev-authorized');
+    document.getElementById('authSection').style.display = 'none';
+    document.getElementById('courseFormSection').style.display = 'flex';
+  } else {
+    alert('Invalid authentication signature.');
+  }
+});
+
+// Load Course Matrix Data from Supabase
+async function fetchCourses() {
+  const { data, error } = await db.from('courses').select('*').order('id', { ascending: true });
+  if (error) {
+    console.error(error);
+    return [];
+  }
+  return data;
+}
+
+// Render dynamic items into HTML categories
+async function renderCourses() {
+  const courses = await fetchCourses();
+  
+  const coreContainer = document.getElementById('coreContainer');
+  const topicContainer = document.getElementById('topicContainer');
+  
+  const coreCourses = courses.filter(c => c.category === 'core');
+  const topicCourses = courses.filter(c => c.category === 'topic');
+  
+  const cardHtml = (c) => `
+    <a href="${c.link}" target="_blank" rel="noopener" class="resource-card" data-id="${c.id}">
+      <button class="del-btn" title="Delete playlist resource" onclick="event.preventDefault(); dropCourse(${c.id});">&times;</button>
+      <div class="resource-icon">📺</div>
+      <div class="resource-info">
+        <p class="resource-name">${escapeHtml(c.title)}</p>
+        <p class="resource-desc">${escapeHtml(c.description)}</p>
+      </div>
+    </a>
+  `;
+
+  coreContainer.innerHTML = coreCourses.length ? coreCourses.map(cardHtml).join('') : '<div class="empty">No Core Track entries found.</div>';
+  topicContainer.innerHTML = topicCourses.length ? topicCourses.map(cardHtml).join('') : '<div class="empty">No Module entries found.</div>';
+}
+
+// Add a new Course to Database
+document.getElementById('saveCourseBtn').addEventListener('click', async () => {
+  const title = document.getElementById('cTitle').value.trim();
+  const description = document.getElementById('cDesc').value.trim();
+  const link = document.getElementById('cLink').value.trim();
+  const category = document.getElementById('cCategory').value;
+
+  if(!title || !link) {
+    alert('Title and Playlist Link are required.');
+    return;
+  }
+
+  const { error } = await db.from('courses').insert([{ title, description, link, category }]);
+  
+  if(error) {
+    alert('Database sync transaction failed.');
+    console.error(error);
+  } else {
+    // Reset Form Fields
+    document.getElementById('cTitle').value = '';
+    document.getElementById('cDesc').value = '';
+    document.getElementById('cLink').value = '';
+    await renderCourses();
+  }
+});
+
+// Delete a Course Entry from Database
+window.dropCourse = async function(id) {
+  if(!confirm("Permanently drop this playlist record?")) return;
+  const { error } = await db.from('courses').delete().eq('id', id);
+  if(error) {
+    alert('Delete transaction failed.');
+  } else {
+    await renderCourses();
+  }
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str ?? '';
+  return d.innerHTML;
+}
+
+// Initialize System Engine
+renderCourses();
+</script>
+</body>
+</html>
