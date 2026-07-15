@@ -153,13 +153,19 @@
   <div class="teams-grid" id="teamsGrid"></div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
   "use strict";
 
-  const STORAGE_KEY = "icpcLedgerTeams_v1";
   const CF_API = "https://codeforces.com/api/user.info?handles=";
   let isAdmin = false;
+
+  // --- Supabase setup ---
+  const SUPABASE_URL = 'https://zqfzwigipfokwrnzkykj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxZnp3aWdpcGZva3dybnpreWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDg2MjgsImV4cCI6MjA5OTUyNDYyOH0.KiA3CAv462bzOZxQBzZrZdzR-zNEwBAL8bxPciHYqJA';
+
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // Admin Shortcut
   window.addEventListener('keydown', (e) => {
@@ -173,11 +179,28 @@
     }
   });
 
-  function loadTeams(){
-    try{ const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; }catch(e){ return []; }
+  // Maps a DB row (with nested members/achievements) to the shape the UI expects
+  function mapRow(row){
+    const members = (row.remembered_team_members || [])
+      .slice()
+      .sort((a,b) => a.member_id - b.member_id) // no explicit slot column — preserve insert order
+      .map(m => ({ name: m.full_name, handle: m.cf_handle, avatar: m.avatar_url, rating: m.rating, rank: m.rank }));
+    const achievements = (row.team_achievements || []).map(a => ({
+      id: a.achievement_id, contest: a.contest_name, position: a.position, link: a.standings_link, addedAt: new Date(a.added_at).getTime()
+    }));
+    return { id: row.team_id, name: row.team_name, createdAt: new Date(row.created_at).getTime(), members, achievements };
   }
-  function saveTeams(teams){ localStorage.setItem(STORAGE_KEY, JSON.stringify(teams)); }
-  let teams = loadTeams();
+
+  async function fetchTeams(){
+    const { data, error } = await sb
+      .from("remembered_team")
+      .select("*, remembered_team_members(*), team_achievements(*)")
+      .order("created_at", { ascending: false });
+    if (error){ console.error(error); alert("Couldn't load teams from the database."); return []; }
+    return data.map(mapRow);
+  }
+
+  let teams = [];
 
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
   function ratingColor(rating){ if (rating == null) return "var(--cf-gray)"; if (rating < 1200) return "var(--cf-gray)"; if (rating < 1400) return "var(--cf-green)"; if (rating < 1600) return "var(--cf-cyan)"; if (rating < 1900) return "var(--cf-blue)"; if (rating < 2100) return "var(--cf-purple)"; if (rating < 2400) return "var(--cf-orange)"; return "var(--cf-red)"; }
@@ -220,8 +243,21 @@
         return;
       }
       const members = rawMembers.map(m => { const info = cfMap[m.handle.toLowerCase()]; return { name: m.name, handle: info.handle, avatar: (info.titlePhoto || "").startsWith("http") ? info.titlePhoto : "https:" + info.titlePhoto, rating: info.rating ?? null, rank: info.rank ?? null }; });
-      const team = { id: uid(), name: teamName, createdAt: Date.now(), achievements: [], members };
-      teams.unshift(team); saveTeams(teams); renderTeams();
+
+      const newTeamId = uid();
+      const { data: teamRow, error: teamErr } = await sb
+        .from("remembered_team").insert({ team_id: newTeamId, team_name: teamName }).select().single();
+      if (teamErr){ createErr.textContent = "Couldn't save team to the database."; console.error(teamErr); return; }
+
+      const memberRows = members.map(m => ({
+        team_id: teamRow.team_id, full_name: m.name, cf_handle: m.handle,
+        avatar_url: m.avatar, rating: m.rating, rank: m.rank
+      }));
+      const { error: memErr } = await sb.from("remembered_team_members").insert(memberRows);
+      if (memErr){ createErr.textContent = "Team saved, but members failed to save."; console.error(memErr); return; }
+
+      const team = { id: teamRow.team_id, name: teamRow.team_name, createdAt: new Date(teamRow.created_at).getTime(), achievements: [], members };
+      teams.unshift(team); renderTeams();
       document.getElementById("teamNameInput").value = ""; membersGrid.innerHTML = [1,2,3].map(slotHTML).join(""); createErr.textContent = "";
     }catch(err){ createErr.textContent = "Couldn't reach Codeforces API. Try again later."; }
     finally{ createBtn.disabled = false; createBtn.textContent = "Verify & Create Team"; }
@@ -258,11 +294,15 @@
     teamsGrid.innerHTML = filtered.map(teamCardHTML).join("");
   }
 
-  teamsGrid.addEventListener("click", (e)=>{
+  teamsGrid.addEventListener("click", async (e)=>{
     const delTeam = e.target.closest("[data-del-team]");
     if (delTeam && isAdmin){
       const id = delTeam.getAttribute("data-del-team");
-      if (confirm("Delete this team and its entire achievement ledger?")){ teams = teams.filter(t => t.id !== id); saveTeams(teams); openLedgers.delete(id); openForms.delete(id); renderTeams(); }
+      if (confirm("Delete this team and its entire achievement ledger?")){
+        const { error } = await sb.from("remembered_team").delete().eq("team_id", id);
+        if (error){ alert("Couldn't delete team."); console.error(error); return; }
+        teams = teams.filter(t => t.id !== id); openLedgers.delete(id); openForms.delete(id); renderTeams();
+      }
       return;
     }
     const toggleLedger = e.target.closest("[data-toggle-ledger]");
@@ -274,12 +314,31 @@
     const saveAch = e.target.closest("[data-save-ach]");
     if (saveAch){
       const id = saveAch.getAttribute("data-save-ach"); const form = teamsGrid.querySelector(`[data-form="${id}"]`); const contest = form.querySelector(".f-contest").value.trim(); const posRaw = form.querySelector(".f-pos").value.trim(); const link = form.querySelector(".f-link").value.trim(); if (!contest){ form.querySelector(".f-contest").focus(); return; }
-      const team = teams.find(t => t.id === id); team.achievements.push({ id: uid(), contest, position: posRaw === "" ? null : Number(posRaw), link: link || null, addedAt: Date.now() }); saveTeams(teams); openForms.delete(id); openLedgers.add(id); renderTeams(); return;
+      const position = posRaw === "" ? null : Number(posRaw);
+      const { data: achRow, error } = await sb
+        .from("team_achievements")
+        .insert({ achievement_id: uid(), team_id: id, contest_name: contest, position, standings_link: link || null })
+        .select().single();
+      if (error){ alert("Couldn't save achievement."); console.error(error); return; }
+      const team = teams.find(t => t.id === id);
+      team.achievements.push({ id: achRow.achievement_id, contest: achRow.contest_name, position: achRow.position, link: achRow.standings_link, addedAt: new Date(achRow.added_at).getTime() });
+      openForms.delete(id); openLedgers.add(id); renderTeams(); return;
     }
     const delAch = e.target.closest("[data-del-ach]");
-    if (delAch && isAdmin){ const [teamId, achId] = delAch.getAttribute("data-del-ach").split("|"); const team = teams.find(t => t.id === teamId); team.achievements = team.achievements.filter(a => a.id !== achId); saveTeams(teams); renderTeams(); return; }
+    if (delAch && isAdmin){
+      const [teamId, achId] = delAch.getAttribute("data-del-ach").split("|");
+      const { error } = await sb.from("team_achievements").delete().eq("achievement_id", achId);
+      if (error){ alert("Couldn't delete achievement."); console.error(error); return; }
+      const team = teams.find(t => t.id === teamId); team.achievements = team.achievements.filter(a => a.id !== achId); renderTeams(); return;
+    }
   });
-  searchInput.addEventListener("input", renderTeams); renderTeams();
+  searchInput.addEventListener("input", renderTeams);
+
+  (async function init(){
+    teamsGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">Loading teams…</div>`;
+    teams = await fetchTeams();
+    renderTeams();
+  })();
 })();
 </script>
 </body>
