@@ -783,7 +783,7 @@ async function loadMembers(){
     .select('*')
     .order('added_at', { ascending: false });
   if(error){ console.error(error); return []; }
-  return data.map(row => ({
+  const members = data.map(row => ({
     id: row.id,
     name: row.name,
     studentId: row.student_id,
@@ -794,6 +794,62 @@ async function loadMembers(){
     avatar: row.avatar,
     addedAt: new Date(row.added_at).getTime()
   }));
+
+  await syncLiveRatings(members);
+  return members;
+}
+
+// Pulls current stats straight from Codeforces and overlays them onto the
+// cached DB rows, so the grid always shows live ratings instead of whatever
+// was captured the moment a member was first added.
+async function syncLiveRatings(members){
+  if(!members.length) return;
+  try{
+    const handles = members.map(m => m.handle).join(';');
+    const res = await fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(handles)}`);
+    const cfData = await res.json();
+    if(cfData.status !== 'OK'){
+      console.warn('CF live sync returned an error, keeping cached values:', cfData.comment);
+      return;
+    }
+    const liveByHandle = {};
+    cfData.result.forEach(u => { liveByHandle[u.handle.toLowerCase()] = u; });
+
+    const updates = [];
+    members.forEach(m => {
+      const live = liveByHandle[m.handle.toLowerCase()];
+      if(!live) return;
+      const liveRating = typeof live.rating === 'number' ? live.rating : null;
+      const liveMaxRating = typeof live.maxRating === 'number' ? live.maxRating : null;
+      const liveRank = live.rank || 'unrated';
+      const liveAvatar = live.avatar && live.avatar.startsWith('http') ? live.avatar : (live.titlePhoto || m.avatar);
+
+      const changed = liveRating !== m.rating || liveMaxRating !== m.maxRating || liveRank !== m.rank;
+
+      m.rating = liveRating;
+      m.maxRating = liveMaxRating;
+      m.rank = liveRank;
+      m.avatar = liveAvatar;
+
+      if(changed){
+        updates.push({ id: m.id, rating: liveRating, max_rating: liveMaxRating, rank: liveRank, avatar: liveAvatar });
+      }
+    });
+
+    // Persist any changed ratings back to Supabase so the DB stays in sync too.
+    if(updates.length && supabaseReady){
+      await Promise.all(updates.map(u =>
+        db.from('members').update({
+          rating: u.rating,
+          max_rating: u.max_rating,
+          rank: u.rank,
+          avatar: u.avatar
+        }).eq('id', u.id)
+      ));
+    }
+  }catch(err){
+    console.warn('Live CF sync failed, showing last cached values.', err);
+  }
 }
 
 async function insertMember(m){
@@ -1032,6 +1088,8 @@ document.getElementById('rankFilter').addEventListener('change', render);
 document.getElementById('sortSelect').addEventListener('change', render);
 
 render();
+// Keep ratings live without requiring a manual page refresh.
+setInterval(render, 60000);
 </script>
 </body>
 </html>
