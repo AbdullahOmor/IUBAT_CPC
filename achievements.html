@@ -75,7 +75,9 @@
   .avatar-wrap img{ width:56px; height:56px; border-radius:10px; object-fit:cover; border: 2px solid var(--bg-panel); position: relative; z-index: 2; }
   .avatar-ring{ position:absolute; inset:-2px; border-radius:12px; background: linear-gradient(135deg, var(--ring-color, var(--muted)), transparent); z-index: 1; opacity: 0.8; }
   .mname{ font-size: 13px; font-weight:600; color: var(--text); width:100%; white-space:normal; word-wrap:break-word; line-height: 1.3; margin-top:4px; }
-  .mhandle{ font-family: var(--font-mono); font-size: 11px; font-weight:700; }
+  .mhandle{ font-family: var(--font-mono); font-size: 11px; font-weight:700; text-decoration:none; cursor:pointer; }
+  .mhandle:hover{ text-decoration:underline; }
+  a.avatar-wrap{ display:block; text-decoration:none; }
   .mrating{ font-family: var(--font-mono); font-size: 10px; color: var(--muted); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;}
   .card-divider{ height:1px; background: var(--border-soft); margin: 0 20px; }
   .ledger-toggle{ display:flex; align-items:center; justify-content:space-between; padding: 14px 20px; cursor:pointer; user-select:none; transition: background 0.2s ease; }
@@ -111,6 +113,19 @@
   .add-ach-form .f-link{ flex: 1 1 160px; }
   .add-ach-form .f-actions{ display:flex; gap:8px; margin-left:auto; width: 100%; justify-content: flex-end; margin-top: 4px; }
   .empty-state{ text-align:center; padding: 80px 20px; color: var(--muted); font-family: var(--font-mono); font-size: 13px; border: 1px dashed var(--border); border-radius:14px; background: rgba(0,0,0,0.2); }
+  .team-card.legendary{ border-color: rgba(230,185,58,0.55); box-shadow: 0 0 0 1px rgba(230,185,58,0.25), 0 14px 34px -12px rgba(230,185,58,0.4); position: relative; overflow: hidden; }
+  .team-card.legendary::before{ content:""; position:absolute; inset:0; padding:1px; border-radius:14px; background: linear-gradient(115deg, transparent 20%, rgba(230,185,58,0.55) 45%, rgba(245,216,120,0.9) 50%, rgba(230,185,58,0.55) 55%, transparent 80%); background-size: 260% 260%; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: legendSheen 5s linear infinite; pointer-events:none; z-index: 3; }
+  @keyframes legendSheen{ 0%{ background-position: 0% 0%; } 100%{ background-position: 200% 200%; } }
+  .team-card.legendary .tname{ color: var(--gold); text-shadow: 0 0 14px rgba(230,185,58,0.45); }
+  .team-card.legendary .ledger-count{ background: rgba(230,185,58,0.12); border-color: rgba(230,185,58,0.3); color: var(--gold); }
+  .team-card.legendary .lt-label{ color: #c9ad63; }
+  .legend-badge{ display:inline-flex; align-items:center; gap:5px; font-family: var(--font-mono); font-size:9.5px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:#1c1404; background: linear-gradient(135deg, #f5d878, var(--gold)); padding:4px 10px 4px 8px; border-radius:20px; box-shadow: 0 2px 10px rgba(230,185,58,0.35); margin-top: 8px; }
+  .legend-toggle-row{ display:flex; align-items:center; gap:7px; font-family: var(--font-mono); font-size:10px; color: var(--muted); letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; user-select:none; white-space:nowrap; }
+  .legend-toggle-row input{ accent-color: var(--gold); width:14px; height:14px; cursor:pointer; }
+  .team-card-head-actions{ display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0; }
+  .team-card.legendary .avatar-ring{ background: linear-gradient(135deg, var(--gold), transparent) !important; }
+  .team-card.legendary .mhandle{ color: var(--gold) !important; }
+  .legend-glow-ring{ position:absolute; top:-40px; right:-40px; width:140px; height:140px; background: radial-gradient(circle, rgba(230,185,58,0.18), transparent 70%); pointer-events:none; z-index:1; }
   #newTeamPanel { display: none; }
   @media (max-width: 768px){ .members-grid{ grid-template-columns: 1fr; } header{ padding: 24px 16px; } main{ padding: 24px 16px 0; } .panel { padding: 20px 16px; } }
 </style>
@@ -126,6 +141,7 @@
   <div class="stat-row">
     <div class="stat"><div class="n" id="statTeams">0</div><div class="l">Teams</div></div>
     <div class="stat"><div class="n" id="statAch">0</div><div class="l">Entries</div></div>
+    <div class="stat"><div class="n" id="statLegend" style="color:var(--gold);">0</div><div class="l">Legends</div></div>
   </div>
 </header>
 
@@ -194,7 +210,7 @@
     const achievements = (row.team_achievements || []).map(a => ({
       id: a.achievement_id, contest: a.contest_name, position: a.position, link: a.standings_link, addedAt: new Date(a.added_at).getTime()
     }));
-    return { id: row.team_id, name: row.team_name, createdAt: new Date(row.created_at).getTime(), members, achievements };
+    return { id: row.team_id, name: row.team_name, createdAt: new Date(row.created_at).getTime(), members, achievements, isLegend: !!row.is_legend };
   }
 
   async function fetchTeams(){
@@ -262,7 +278,7 @@
       const { error: memErr } = await sb.from("remembered_team_members").insert(memberRows);
       if (memErr){ createErr.textContent = "Team saved, but members failed to save."; console.error(memErr); return; }
 
-      const team = { id: teamRow.team_id, name: teamRow.team_name, createdAt: new Date(teamRow.created_at).getTime(), achievements: [], members };
+      const team = { id: teamRow.team_id, name: teamRow.team_name, createdAt: new Date(teamRow.created_at).getTime(), achievements: [], members, isLegend: false };
       teams.unshift(team); renderTeams();
       document.getElementById("teamNameInput").value = ""; membersGrid.innerHTML = [1,2,3].map(slotHTML).join(""); createErr.textContent = "";
     }catch(err){ createErr.textContent = "Couldn't reach Codeforces API. Try again later."; }
@@ -272,11 +288,12 @@
   const teamsGrid = document.getElementById("teamsGrid");
   const statTeams = document.getElementById("statTeams");
   const statAch = document.getElementById("statAch");
+  const statLegend = document.getElementById("statLegend");
   const searchInput = document.getElementById("searchInput");
   const openLedgers = new Set();
   const openForms = new Set();
   function escapeHTML(str){ return String(str).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-  function memberChip(m){ const color = ratingColor(m.rating); return `<div class="member-chip"><div class="avatar-wrap"><img src="${escapeHTML(m.avatar)}" alt="${escapeHTML(m.handle)}" onerror="this.src='https://userpic.codeforces.org/no-title.jpg'"><div class="avatar-ring" style="--ring-color:${color}"></div></div><div class="mname" title="${escapeHTML(m.name)}">${escapeHTML(m.name)}</div><div class="mhandle" style="color:${color}">${escapeHTML(m.handle)}</div><div class="mrating">${m.rating != null ? m.rating : "unrated"}</div></div>`; }
+  function memberChip(m){ const color = ratingColor(m.rating); const profileUrl = `https://codeforces.com/profile/${encodeURIComponent(m.handle)}`; return `<div class="member-chip"><a class="avatar-wrap" href="${profileUrl}" target="_blank" rel="noopener" title="Open ${escapeHTML(m.handle)} on Codeforces"><img src="${escapeHTML(m.avatar)}" alt="${escapeHTML(m.handle)}" onerror="this.src='https://userpic.codeforces.org/no-title.jpg'"><div class="avatar-ring" style="--ring-color:${color}"></div></a><div class="mname" title="${escapeHTML(m.name)}">${escapeHTML(m.name)}</div><a class="mhandle" style="color:${color}" href="${profileUrl}" target="_blank" rel="noopener">${escapeHTML(m.handle)}</a><div class="mrating">${m.rating != null ? m.rating : "unrated"}</div></div>`; }
 
   function blockHTML(a, teamId){
     const color = posColor(a.position);
@@ -288,14 +305,22 @@
     const achCount = team.achievements.length;
     const ledgerOpen = openLedgers.has(team.id);
     const formOpen = openForms.has(team.id);
-    const sortedAch = [...team.achievements].sort((a,b)=> b.addedAt - a.addedAt);
-    return `<div class="team-card" data-team="${team.id}"><div class="team-card-head"><div><div class="tname">${escapeHTML(team.name)}</div><div class="tid">ID · ${team.id} ${isAdmin ? '<span style="color:var(--danger)">[DEV]</span>' : ''}</div></div>${isAdmin ? `<button class="ghost" data-del-team="${team.id}" title="Delete team">✕</button>` : ''}</div><div class="members-row">${team.members.map(memberChip).join("")}</div><div class="card-divider"></div><div class="ledger-toggle" data-toggle-ledger="${team.id}"><span class="lt-label">⛓ Achievement chain <span class="ledger-count">${achCount}</span></span><span class="chevron ${ledgerOpen ? "open" : ""}">▸</span></div>${ledgerOpen ? `<div class="ledger">${achCount === 0 ? `<div class="ledger-empty">No entries yet — this team's ledger is empty.</div>` : `<div class="chain">${sortedAch.map(a=>blockHTML(a, team.id)).join("")}</div>`}</div>` : ""}<div class="add-ach-row">${!formOpen ? (isAdmin ? `<button class="small" data-open-form="${team.id}">+ Add achievement</button>` : "") : `<div class="add-ach-form open" data-form="${team.id}"><input type="text" class="f-contest" placeholder="Contest name" maxlength="120"><input type="number" class="f-pos" placeholder="Position" min="1"><input type="url" class="f-link" placeholder="Standings link (optional)"><div class="f-actions"><button class="small ghost" data-cancel-form="${team.id}">Cancel</button><button class="small primary" data-save-ach="${team.id}">Save</button></div></div>`}</div></div>`;
+    const sortedAch = [...team.achievements].sort((a,b)=>{
+      const ap = (a.position === null || a.position === undefined || a.position === "") ? Infinity : Number(a.position);
+      const bp = (b.position === null || b.position === undefined || b.position === "") ? Infinity : Number(b.position);
+      if (ap !== bp) return ap - bp;
+      return b.addedAt - a.addedAt;
+    });
+    const isLegend = !!team.isLegend;
+    return `<div class="team-card${isLegend ? ' legendary' : ''}" data-team="${team.id}">${isLegend ? '<div class="legend-glow-ring"></div>' : ''}<div class="team-card-head"><div><div class="tname">${isLegend ? '👑 ' : ''}${escapeHTML(team.name)}</div><div class="tid">ID · ${team.id} ${isAdmin ? '<span style="color:var(--danger)">[DEV]</span>' : ''}</div>${isLegend ? `<span class="legend-badge">👑 Legendary Team</span>` : ''}</div><div class="team-card-head-actions">${isAdmin ? `<label class="legend-toggle-row" title="Mark this team as legendary"><input type="checkbox" data-toggle-legend="${team.id}" ${isLegend ? 'checked' : ''}> Legend</label>` : ''}${isAdmin ? `<button class="ghost" data-del-team="${team.id}" title="Delete team">✕</button>` : ''}</div></div><div class="members-row">${team.members.map(memberChip).join("")}</div><div class="card-divider"></div><div class="ledger-toggle" data-toggle-ledger="${team.id}"><span class="lt-label">⛓ Achievement chain <span class="ledger-count">${achCount}</span></span><span class="chevron ${ledgerOpen ? "open" : ""}">▸</span></div>${ledgerOpen ? `<div class="ledger">${achCount === 0 ? `<div class="ledger-empty">No entries yet — this team's ledger is empty.</div>` : `<div class="chain">${sortedAch.map(a=>blockHTML(a, team.id)).join("")}</div>`}</div>` : ""}<div class="add-ach-row">${!formOpen ? (isAdmin ? `<button class="small" data-open-form="${team.id}">+ Add achievement</button>` : "") : `<div class="add-ach-form open" data-form="${team.id}"><input type="text" class="f-contest" placeholder="Contest name" maxlength="120"><input type="number" class="f-pos" placeholder="Position" min="1"><input type="url" class="f-link" placeholder="Standings link (optional)"><div class="f-actions"><button class="small ghost" data-cancel-form="${team.id}">Cancel</button><button class="small primary" data-save-ach="${team.id}">Save</button></div></div>`}</div></div>`;
   }
 
   function renderTeams(){
     const q = searchInput.value.trim().toLowerCase();
-    const filtered = teams.filter(t=>{ if (!q) return true; if (t.name.toLowerCase().includes(q)) return true; return t.members.some(m => m.handle.toLowerCase().includes(q) || m.name.toLowerCase().includes(q)); });
+    const filtered = teams.filter(t=>{ if (!q) return true; if (t.name.toLowerCase().includes(q)) return true; return t.members.some(m => m.handle.toLowerCase().includes(q) || m.name.toLowerCase().includes(q)); })
+      .sort((a,b) => (b.isLegend ? 1 : 0) - (a.isLegend ? 1 : 0));
     statTeams.textContent = teams.length; statAch.textContent = teams.reduce((s,t)=> s + t.achievements.length, 0);
+    statLegend.textContent = teams.filter(t => t.isLegend).length;
     if (filtered.length === 0){ teamsGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">${teams.length === 0 ? "No teams registered yet." : "No teams match your search."}</div>`; return; }
     teamsGrid.innerHTML = filtered.map(teamCardHTML).join("");
   }
@@ -338,12 +363,59 @@
       const team = teams.find(t => t.id === teamId); team.achievements = team.achievements.filter(a => a.id !== achId); renderTeams(); return;
     }
   });
+  teamsGrid.addEventListener("change", async (e) => {
+    const legendToggle = e.target.closest("[data-toggle-legend]");
+    if (legendToggle && isAdmin){
+      const id = legendToggle.getAttribute("data-toggle-legend");
+      const newVal = legendToggle.checked;
+      legendToggle.disabled = true;
+      const { error } = await sb.from("remembered_team").update({ is_legend: newVal }).eq("team_id", id);
+      if (error){
+        alert("Couldn't update legendary status — make sure the 'is_legend' boolean column exists on remembered_team.");
+        console.error(error);
+        legendToggle.checked = !newVal;
+        legendToggle.disabled = false;
+        return;
+      }
+      const team = teams.find(t => t.id === id);
+      if (team) team.isLegend = newVal;
+      renderTeams();
+    }
+  });
   searchInput.addEventListener("input", renderTeams);
+
+  let liveRefreshInFlight = false;
+  async function refreshLiveRatings(){
+    if (liveRefreshInFlight || teams.length === 0) return;
+    liveRefreshInFlight = true;
+    try{
+      const allHandles = teams.flatMap(t => t.members.map(m => m.handle));
+      const cfMap = await fetchCFUsers(allHandles);
+      let changed = false;
+      teams.forEach(t => {
+        t.members.forEach(m => {
+          const info = cfMap[m.handle.toLowerCase()];
+          if (!info) return;
+          const liveRating = info.rating ?? null;
+          const liveRank = info.rank ?? null;
+          const liveAvatar = (info.titlePhoto || "").startsWith("http") ? info.titlePhoto : (info.titlePhoto ? "https:" + info.titlePhoto : m.avatar);
+          if (m.rating !== liveRating || m.rank !== liveRank || m.avatar !== liveAvatar){
+            m.rating = liveRating; m.rank = liveRank; m.avatar = liveAvatar; changed = true;
+          }
+        });
+      });
+      if (changed) renderTeams();
+    }catch(err){ console.error("Live rating refresh failed:", err); }
+    finally{ liveRefreshInFlight = false; }
+  }
 
   (async function init(){
     teamsGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">Loading teams…</div>`;
     teams = await fetchTeams();
     renderTeams();
+    refreshLiveRatings();
+    setInterval(refreshLiveRatings, 120000);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refreshLiveRatings(); });
   })();
 })();
 </script>
