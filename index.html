@@ -53,7 +53,6 @@
     z-index: 10;
   }
 
-  /* Dev Dashboard Drawer */
   .dev-drawer {
     background: #0b0f17;
     border-bottom: 2px solid var(--wa-red);
@@ -309,7 +308,6 @@
     box-shadow: 0 0 25px var(--accent-gold-glow);
   }
 
-  /* Emerald High-contrast styling for the Achievements Terminal button */
   .achievements-nav-btn {
     color: #10b981;
     border: 2px solid rgba(16, 185, 129, 0.5);
@@ -319,6 +317,17 @@
     background: #10b981;
     color: #000;
     box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+  }
+
+  .cf-nav-btn {
+    color: #f43f5e;
+    border: 2px solid rgba(244, 63, 94, 0.4);
+    background: rgba(244, 63, 94, 0.06);
+  }
+  .cf-nav-btn:hover {
+    background: #f43f5e;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(244, 63, 94, 0.4);
   }
 
   form {
@@ -654,19 +663,19 @@
 </header>
 
 <main>
-  <!-- Isolated Navigation Panel Menu -->
   <div class="nav-panel">
     <p class="panel-title">Explore Hub</p>
     <div class="nav-btn-container">
       <a href="teams.html" class="teams-nav-btn">👥 Teams</a>
       <a href="platforms.html" class="platforms-nav-btn">🌐 Platforms</a>
+      <!-- Updated link to local contest.html -->
+      <a href="contest.html" class="cf-nav-btn">⚡ CF Contest</a>
       <a href="video-resources.html" class="courses-nav-btn">📚 Courses</a>
       <a href="hof.html" class="hof-nav-btn">🏆 Legends</a>
       <a href="achievements.html" class="achievements-nav-btn">🎖️ Achievements</a>
     </div>
   </div>
 
-  <!-- Isolated Registration Terminal -->
   <div class="panel">
     <div class="panel-header-wrapper">
       <p class="panel-title">Secure Registration Terminal</p>
@@ -799,9 +808,6 @@ async function loadMembers(){
   return members;
 }
 
-// Pulls current stats straight from Codeforces and overlays them onto the
-// cached DB rows, so the grid always shows live ratings instead of whatever
-// was captured the moment a member was first added.
 async function syncLiveRatings(members){
   if(!members.length) return;
   try{
@@ -836,7 +842,6 @@ async function syncLiveRatings(members){
       }
     });
 
-    // Persist any changed ratings back to Supabase so the DB stays in sync too.
     if(updates.length && supabaseReady){
       await Promise.all(updates.map(u =>
         db.from('members').update({
@@ -979,7 +984,7 @@ async function render(){
     grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><span class="verdict">${members.length === 0 ? 'No Members Found' : 'No Roster Matches'}</span></div>`;
   } else {
     if(sortMode === 'rating-desc') currentFilteredList.sort((a,b) => (b.rating ?? -1) - (a.rating ?? -1));
-    else if(sortMode === 'rating-asc') currentFilteredList.sort((a,b) => (a.rating ?? 99999) - (b.rating ?? 99999));
+    else if(sortMode === 'rating-asc') currentFilteredList.sort((a,b) => (a.rating ?? 99999) - (a.rating ?? 99999));
     else if(sortMode === 'name-asc') currentFilteredList.sort((a,b) => a.name.localeCompare(b.name));
     else if(sortMode === 'recent') currentFilteredList.sort((a,b) => b.addedAt - a.addedAt);
     
@@ -1088,7 +1093,6 @@ document.getElementById('rankFilter').addEventListener('change', render);
 document.getElementById('sortSelect').addEventListener('change', render);
 
 render();
-// Keep ratings live without requiring a manual page refresh.
 setInterval(render, 60000);
 </script>
 </body>
