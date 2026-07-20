@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contests · IUBAT Competitive Programmers</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+      :root {
+        --bg: #05070a;
+        --bg-panel: rgba(15, 20, 30, 0.7);
+        --bg-card: rgba(11, 15, 23, 0.85);
+        --line: rgba(255, 255, 255, 0.06);
+        --line-active: rgba(255, 179, 0, 0.3);
+        --text: #f1f5f9;
+        --text-dim: #94a3b8;
+        --accent: #ffb300;
+        --accent-glow: rgba(255, 179, 0, 0.15);
+        --ac-green: #10b981;
+        --wa-red: #ef4444;
+
+        --r-newbie: #94a3b8;
+        --r-pupil: #22c55e;
+        --r-specialist: #06b6d4;
+        --r-expert: #3b82f6;
+        --r-cm: #a855f7;
+        --r-master: #f97316;
+        --r-gm: #ef4444;
+        --r-lgm: #f43f5e;
+
+        --accent-gold: #eab308;
+        --accent-gold-glow: rgba(234, 179, 8, 0.15);
+        --live-blue: #3b82f6;
+      }
+
+      * {
+        box-sizing: border-box;
+        transition: all 0.2s ease-in-out;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background:
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(255, 179, 0, 0.08),
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 20% 70%,
+            rgba(59, 130, 246, 0.06),
+            transparent 50%
+          ),
+          var(--bg);
+        color: var(--text);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        min-height: 100vh;
+        backdrop-filter: blur(100px);
+      }
+
+      .scanlines {
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.005) 0px,
+          rgba(255, 255, 255, 0.005) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+        z-index: 10;
+      }
+
+      header {
+        position: relative;
+        padding: 80px 24px 50px;
+        text-align: center;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .eyebrow {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--ac-green);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        background: rgba(16, 185, 129, 0.06);
+        padding: 6px 14px;
+        border-radius: 100px;
+        border: 1px solid rgba(16, 185, 129, 0.15);
+      }
+      .eyebrow::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--ac-green);
+        box-shadow: 0 0 10px var(--ac-green);
+      }
+
+      h1 {
+        font-weight: 800;
+        font-size: clamp(32px, 6vw, 54px);
+        letter-spacing: -0.03em;
+        margin: 0 0 16px;
+        color: #fff;
+      }
+      h1 span {
+        color: var(--accent);
+        text-shadow: 0 0 40px var(--accent-glow);
+      }
+
+      .sub {
+        color: var(--text-dim);
+        font-size: 16px;
+        max-width: 580px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+
+      .stats-bar {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+      }
+      .stat {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--line);
+        padding: 16px 32px;
+        border-radius: 14px;
+        text-align: center;
+        min-width: 160px;
+      }
+      .stat .num {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 24px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .stat .lbl {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-top: 6px;
+        font-weight: 600;
+      }
+
+      main {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 50px 24px 100px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .panel {
+        background: var(--bg-panel);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 35px;
+        margin-bottom: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(12px);
+      }
+
+      .nav-panel {
+        background: var(--bg-panel);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 24px 35px;
+        margin-bottom: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(12px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+
+      .panel-header-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+
+      .panel-title {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        flex: 1;
+      }
+      .panel-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, var(--line-active), transparent);
+        margin-right: 10px;
+      }
+      .panel-title.live-title {
+        color: var(--live-blue);
+      }
+      .panel-title.live-title::after {
+        background: linear-gradient(
+          90deg,
+          rgba(59, 130, 246, 0.35),
+          transparent
+        );
+      }
+      .panel-title.recent-title {
+        color: var(--accent-gold);
+      }
+      .panel-title.recent-title::after {
+        background: linear-gradient(
+          90deg,
+          rgba(234, 179, 8, 0.35),
+          transparent
+        );
+      }
+
+      .nav-btn-container {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .nav-btn-container a {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        padding: 12px 28px;
+        border-radius: 12px;
+        white-space: nowrap;
+        letter-spacing: 0.02em;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 140px;
+      }
+      .nav-btn-container a:hover {
+        transform: translateY(-2px);
+      }
+      .nav-btn-container a:active {
+        transform: translateY(0);
+      }
+
+      .home-nav-btn {
+        color: var(--accent);
+        border: 2px solid rgba(255, 179, 0, 0.4);
+        background: rgba(255, 179, 0, 0.06);
+      }
+      .home-nav-btn:hover {
+        background: var(--accent);
+        color: #000;
+        box-shadow: 0 0 20px var(--accent-glow);
+      }
+      .teams-nav-btn {
+        color: #a855f7;
+        border: 2px solid rgba(168, 85, 247, 0.4);
+        background: rgba(168, 85, 247, 0.06);
+      }
+      .teams-nav-btn:hover {
+        background: #a855f7;
+        color: #fff;
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+      }
+      .platforms-nav-btn {
+        color: #3b82f6;
+        border: 2px solid rgba(59, 130, 246, 0.4);
+        background: rgba(59, 130, 246, 0.06);
+      }
+      .platforms-nav-btn:hover {
+        background: #3b82f6;
+        color: #fff;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+      }
+      .hof-nav-btn {
+        color: var(--accent-gold);
+        border: 2px solid rgba(234, 179, 8, 0.5);
+        background: rgba(234, 179, 8, 0.08);
+      }
+      .hof-nav-btn:hover {
+        background: var(--accent-gold);
+        color: #000;
+        box-shadow: 0 0 25px var(--accent-gold-glow);
+      }
+      .achievements-nav-btn {
+        color: #10b981;
+        border: 2px solid rgba(16, 185, 129, 0.5);
+        background: rgba(16, 185, 129, 0.08);
+      }
+      .achievements-nav-btn:hover {
+        background: #10b981;
+        color: #000;
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+      }
+
+      .status-line {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        margin-top: 4px;
+        min-height: 18px;
+        font-weight: 500;
+        color: var(--text-dim);
+      }
+      .status-line.ok {
+        color: var(--ac-green);
+      }
+      .status-line.err {
+        color: var(--wa-red);
+      }
+      .status-line.pending {
+        color: var(--text-dim);
+      }
+
+      .contest-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .contest-card {
+        position: relative;
+        background: var(--bg-card);
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--accent);
+        border-radius: 16px;
+        padding: 22px 26px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      }
+      .contest-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow:
+          0 15px 35px rgba(0, 0, 0, 0.3),
+          0 0 25px var(--accent-glow);
+      }
+      .contest-card.live {
+        border-left-color: var(--live-blue);
+      }
+      .contest-card.finished {
+        border-left-color: var(--accent-gold);
+      }
+
+      .contest-info {
+        flex: 1;
+        min-width: 240px;
+      }
+      .contest-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 8px;
+      }
+      .contest-meta {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        font-size: 12.5px;
+        color: var(--text-dim);
+        font-family: "IBM Plex Mono", monospace;
+      }
+      .contest-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .badge {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 100px;
+      }
+      .badge.upcoming {
+        color: var(--accent);
+        background: rgba(255, 179, 0, 0.1);
+        border: 1px solid rgba(255, 179, 0, 0.3);
+      }
+      .badge.live {
+        color: var(--live-blue);
+        background: rgba(59, 130, 246, 0.12);
+        border: 1px solid rgba(59, 130, 246, 0.35);
+        animation: pulseBadge 1.6s infinite;
+      }
+      .badge.finished {
+        color: var(--accent-gold);
+        background: rgba(234, 179, 8, 0.1);
+        border: 1px solid rgba(234, 179, 8, 0.3);
+      }
+      @keyframes pulseBadge {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.45;
+        }
+      }
+
+      .contest-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .countdown {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--accent);
+        min-width: 150px;
+        text-align: right;
+      }
+      .countdown .cd-label {
+        display: block;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+
+      a.action-btn,
+      button.action-btn {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 700;
+        font-size: 12.5px;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+        background: var(--accent);
+        color: #000;
+        border: none;
+        padding: 11px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        white-space: nowrap;
+        box-shadow: 0 4px 14px rgba(255, 179, 0, 0.2);
+        display: inline-flex;
+        align-items: center;
+      }
+      a.action-btn:hover,
+      button.action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 179, 0, 0.4);
+      }
+      button.action-btn.standings-btn {
+        background: transparent;
+        color: var(--accent-gold);
+        border: 2px solid rgba(234, 179, 8, 0.4);
+        box-shadow: none;
+      }
+      button.action-btn.standings-btn:hover {
+        background: var(--accent-gold);
+        color: #000;
+      }
+      button.action-btn:disabled {
+        opacity: 0.45;
+        cursor: wait;
+        transform: none;
+      }
+
+      .standings-wrap {
+        width: 100%;
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+        display: none;
+      }
+      .standings-wrap.open {
+        display: block;
+      }
+
+      table.standings-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      table.standings-table th {
+        text-align: left;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      table.standings-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      table.standings-table tr:last-child td {
+        border-bottom: none;
+      }
+      table.standings-table .handle-cell {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 700;
+      }
+      table.standings-table a {
+        color: inherit;
+        text-decoration: none;
+      }
+      table.standings-table a:hover {
+        text-decoration: underline;
+      }
+
+      .empty {
+        text-align: center;
+        padding: 50px 20px;
+        color: var(--text-dim);
+      }
+      .empty .verdict {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      footer {
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 12px;
+        padding: 40px 24px;
+        border-top: 1px solid var(--line);
+        font-family: "IBM Plex Mono", monospace;
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      @media (max-width: 900px) {
+        .nav-panel {
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 20px;
+        }
+        .nav-btn-container {
+          width: 100%;
+          justify-content: center;
+        }
+        .nav-btn-container a {
+          flex: 1;
+          text-align: center;
+        }
+        .contest-card {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .countdown {
+          text-align: left;
+        }
+        .contest-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  </head>
+  <body>
+    <div class="scanlines"></div>
+
+    <header>
+      <div class="eyebrow">System Live &middot; Codeforces Contest Feed</div>
+      <h1>Upcoming <span>Contests</span></h1>
+      <p class="sub">
+        Pulled straight from the Codeforces API, counting down in real time —
+        with standings for every handle in the IUBAT roster.
+      </p>
+
+      <div class="stats-bar">
+        <div class="stat">
+          <div class="num" id="statUpcoming">—</div>
+          <div class="lbl">Upcoming</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statNextIn">—</div>
+          <div class="lbl">Next Contest In</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statMembers">—</div>
+          <div class="lbl">Tracked Handles</div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="nav-panel">
+        <p class="panel-title">Explore Hub</p>
+        <div class="nav-btn-container">
+          <a href="index.html" class="home-nav-btn">🏠 Roster</a>
+          <a href="teams.html" class="teams-nav-btn">👥 Teams</a>
+          <a href="platforms.html" class="platforms-nav-btn">🌐 Platforms</a>
+          <a href="hof.html" class="hof-nav-btn">🏆 Legends</a>
+          <a href="achievements.html" class="achievements-nav-btn"
+            >🎖️ Achievements</a
+          >
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header-wrapper">
+          <p class="panel-title live-title">🔴 Running Right Now</p>
+        </div>
+        <div class="status-line" id="liveStatus">
+          Checking for live rounds...
+        </div>
+        <div class="contest-list" id="liveList"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header-wrapper">
+          <p class="panel-title">⏳ Upcoming Contests</p>
+        </div>
+        <div class="status-line" id="upcomingStatus">
+          Fetching contest.list from Codeforces...
+        </div>
+        <div class="contest-list" id="upcomingList"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header-wrapper">
+          <p class="panel-title recent-title">
+            📜 Recently Finished — Roster Standings
+          </p>
+        </div>
+        <div class="status-line" id="recentStatus"></div>
+        <div class="contest-list" id="recentList"></div>
+      </div>
+    </main>
+
+    <footer>IUBAT Competitive Programmers &middot; Contest Tracker</footer>
+
+    <script>
+      const SUPABASE_URL = "https://zqfzwigipfokwrnzkykj.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxZnp3aWdpcGZva3dybnpreWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDg2MjgsImV4cCI6MjA5OTUyNDYyOH0.KiA3CAv462bzOZxQBzZrZdzR-zNEwBAL8bxPciHYqJA";
+
+      const supabaseReady =
+        SUPABASE_URL.startsWith("http") &&
+        SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_PUBLIC_KEY";
+      const db = supabaseReady
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null;
+
+      const RECENT_LIMIT = 6;
+      let trackedMembers = []; // [{name, handle}]
+      let countdownTimers = []; // {el, target}
+
+      function escapeHtml(str) {
+        const d = document.createElement("div");
+        d.textContent = str ?? "";
+        return d.innerHTML;
+      }
+
+      async function loadTrackedMembers() {
+        if (!supabaseReady) return [];
+        const { data, error } = await db.from("members").select("name, handle");
+        if (error) {
+          console.error(error);
+          return [];
+        }
+        return data.map((r) => ({ name: r.name, handle: r.handle }));
+      }
+
+      function fmtDuration(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        return `${h}h ${m ? m + "m" : ""}`.trim();
+      }
+
+      function fmtStartLocal(unixSeconds) {
+        const d = new Date(unixSeconds * 1000);
+        return d.toLocaleString(undefined, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function pad(n) {
+        return String(n).padStart(2, "0");
+      }
+
+      function fmtRemaining(ms) {
+        if (ms <= 0) return "00:00:00";
+        const totalSec = Math.floor(ms / 1000);
+        const days = Math.floor(totalSec / 86400);
+        const hrs = Math.floor((totalSec % 86400) / 3600);
+        const mins = Math.floor((totalSec % 3600) / 60);
+        const secs = totalSec % 60;
+        return days > 0
+          ? `${days}d ${pad(hrs)}:${pad(mins)}:${pad(secs)}`
+          : `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+      }
+
+      function tickCountdowns() {
+        const now = Date.now();
+        countdownTimers.forEach((t) => {
+          const remaining = t.target - now;
+          if (t.el) t.el.textContent = fmtRemaining(remaining);
+        });
+        const next = countdownTimers
+          .filter((t) => t.target > now)
+          .sort((a, b) => a.target - b.target)[0];
+        const nextEl = document.getElementById("statNextIn");
+        if (next) {
+          nextEl.textContent = fmtRemaining(next.target - now);
+        } else if (nextEl) {
+          nextEl.textContent = "—";
+        }
+      }
+      setInterval(tickCountdowns, 1000);
+
+      function registerLink(contest) {
+        return `https://codeforces.com/contestRegistration/${contest.id}`;
+      }
+      function contestLink(contest) {
+        return `https://codeforces.com/contest/${contest.id}`;
+      }
+
+      function buildLiveCard(c) {
+        const card = document.createElement("div");
+        card.className = "contest-card live";
+        card.innerHTML = `
+    <div class="contest-info">
+      <p class="contest-name">${escapeHtml(c.name)} <span class="badge live">Live</span></p>
+      <div class="contest-meta">
+        <span>Started ${fmtStartLocal(c.startTimeSeconds)}</span>
+        <span>Duration ${fmtDuration(c.durationSeconds)}</span>
+      </div>
+    </div>
+    <div class="contest-actions">
+      <a class="action-btn" href="${contestLink(c)}" target="_blank" rel="noopener">Open contest</a>
+      <button class="action-btn standings-btn" data-standings="${c.id}">📊 Roster standings</button>
+    </div>
+    <div class="standings-wrap" id="standings-${c.id}"></div>
+  `;
+        return card;
+      }
+
+      function buildUpcomingCard(c) {
+        const card = document.createElement("div");
+        card.className = "contest-card";
+        const targetMs = c.startTimeSeconds * 1000;
+        card.innerHTML = `
+    <div class="contest-info">
+      <p class="contest-name">${escapeHtml(c.name)} <span class="badge upcoming">Upcoming</span></p>
+      <div class="contest-meta">
+        <span>🗓️ ${fmtStartLocal(c.startTimeSeconds)}</span>
+        <span>⏱️ ${fmtDuration(c.durationSeconds)}</span>
+      </div>
+    </div>
+    <div class="contest-actions">
+      <div class="countdown"><span class="cd-label">Starts in</span><span id="cd-${c.id}">--:--:--</span></div>
+      <a class="action-btn" href="${registerLink(c)}" target="_blank" rel="noopener">Register</a>
+    </div>
+  `;
+        countdownTimers.push({ el: null, target: targetMs, contestId: c.id });
+        requestAnimationFrame(() => {
+          const el = document.getElementById(`cd-${c.id}`);
+          const entry = countdownTimers.find((t) => t.contestId === c.id);
+          if (entry) entry.el = el;
+        });
+        return card;
+      }
+
+      function buildRecentCard(c) {
+        const card = document.createElement("div");
+        card.className = "contest-card finished";
+        card.innerHTML = `
+    <div class="contest-info">
+      <p class="contest-name">${escapeHtml(c.name)} <span class="badge finished">Finished</span></p>
+      <div class="contest-meta">
+        <span>🗓️ ${fmtStartLocal(c.startTimeSeconds)}</span>
+        <span>⏱️ ${fmtDuration(c.durationSeconds)}</span>
+      </div>
+    </div>
+    <div class="contest-actions">
+      <a class="action-btn" href="${contestLink(c)}" target="_blank" rel="noopener">Open contest</a>
+      <button class="action-btn standings-btn" data-standings="${c.id}">📊 Roster standings</button>
+    </div>
+    <div class="standings-wrap" id="standings-${c.id}"></div>
+  `;
+        return card;
+      }
+
+      async function toggleStandings(contestId, btn) {
+        const wrap = document.getElementById(`standings-${contestId}`);
+        if (!wrap) return;
+
+        if (wrap.classList.contains("open")) {
+          wrap.classList.remove("open");
+          btn.textContent = "📊 Roster standings";
+          return;
+        }
+
+        if (!trackedMembers.length) {
+          wrap.innerHTML = `<p class="status-line err">No tracked handles found in the roster database.</p>`;
+          wrap.classList.add("open");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Loading...";
+        wrap.innerHTML = `<p class="status-line pending">Pulling and filtering standings for ${trackedMembers.length} tracked handle(s)...</p>`;
+        wrap.classList.add("open");
+
+        try {
+          // Fetching without extra parameters as required by API rules
+          const url = `https://codeforces.com/api/contest.standings?contestId=${contestId}`;
+          const res = await fetch(url);
+          const data = await res.json();
+
+          if (data.status !== "OK") {
+            wrap.innerHTML = `<p class="status-line err">${escapeHtml(data.comment || "Standings not available yet.")}</p>`;
+            btn.textContent = "📊 Roster standings";
+            btn.disabled = false;
+            return;
+          }
+
+          // Create a Set of tracked handles for efficient lookup
+          const trackedHandles = new Set(
+            trackedMembers.map((m) => m.handle.toLowerCase()),
+          );
+
+          // Filter results locally to match the roster
+          const rosterRows = (data.result.rows || []).filter((row) => {
+            return row.party.members.some((member) =>
+              trackedHandles.has(member.handle.toLowerCase()),
+            );
+          });
+
+          if (!rosterRows.length) {
+            wrap.innerHTML = `<p class="status-line">None of the tracked handles have participated in this round.</p>`;
+            btn.textContent = "📊 Roster standings";
+            btn.disabled = false;
+            return;
+          }
+
+          // Sort the filtered results by rank
+          rosterRows.sort((a, b) => a.rank - b.rank);
+
+          const rowsHtml = rosterRows
+            .map((r) => {
+              const names = r.party.members.map((m) => m.handle).join(", ");
+              const solved = r.problemResults.filter(
+                (p) => p.points > 0 || p.bestSubmissionTimeSeconds,
+              ).length;
+              return `
+        <tr>
+          <td>#${r.rank}</td>
+          <td class="handle-cell"><a href="https://codeforces.com/profile/${encodeURIComponent(names)}" target="_blank" rel="noopener">${escapeHtml(names)}</a></td>
+          <td>${r.points}</td>
+          <td>${solved} / ${r.problemResults.length}</td>
+          <td>${r.penalty ?? "—"}</td>
+        </tr>
+      `;
+            })
+            .join("");
+
+          wrap.innerHTML = `
+      <table class="standings-table">
+        <thead>
+          <tr><th>Rank</th><th>Handle</th><th>Points</th><th>Solved</th><th>Penalty</th></tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+          btn.textContent = "Hide standings";
+          btn.disabled = false;
+        } catch (err) {
+          console.error(err);
+          wrap.innerHTML = `<p class="status-line err">Could not reach the Codeforces standings endpoint.</p>`;
+          btn.textContent = "📊 Roster standings";
+          btn.disabled = false;
+        }
+      }
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-standings]");
+        if (!btn) return;
+        toggleStandings(btn.getAttribute("data-standings"), btn);
+      });
+
+      async function init() {
+        trackedMembers = await loadTrackedMembers();
+        document.getElementById("statMembers").textContent =
+          trackedMembers.length || "—";
+
+        const liveList = document.getElementById("liveList");
+        const liveStatus = document.getElementById("liveStatus");
+        const upcomingList = document.getElementById("upcomingList");
+        const upcomingStatus = document.getElementById("upcomingStatus");
+        const recentList = document.getElementById("recentList");
+        const recentStatus = document.getElementById("recentStatus");
+
+        try {
+          const res = await fetch(
+            "https://codeforces.com/api/contest.list?gym=false",
+          );
+          const data = await res.json();
+          if (data.status !== "OK")
+            throw new Error(data.comment || "contest.list failed");
+
+          const all = data.result;
+          const live = all
+            .filter((c) => c.phase === "CODING")
+            .sort((a, b) => a.startTimeSeconds - b.startTimeSeconds);
+          const upcoming = all
+            .filter((c) => c.phase === "BEFORE")
+            .sort((a, b) => a.startTimeSeconds - b.startTimeSeconds);
+          const recent = all
+            .filter((c) => c.phase === "FINISHED")
+            .sort((a, b) => b.startTimeSeconds - a.startTimeSeconds)
+            .slice(0, RECENT_LIMIT);
+
+          document.getElementById("statUpcoming").textContent = upcoming.length;
+
+          if (live.length) {
+            liveStatus.textContent = `${live.length} round(s) currently running.`;
+            liveStatus.className = "status-line ok";
+            live.forEach((c) => liveList.appendChild(buildLiveCard(c)));
+          } else {
+            liveStatus.textContent = "No round is running right now.";
+            liveStatus.className = "status-line";
+          }
+
+          if (upcoming.length) {
+            upcomingStatus.textContent = `${upcoming.length} contest(s) scheduled.`;
+            upcomingStatus.className = "status-line ok";
+            upcoming.forEach((c) =>
+              upcomingList.appendChild(buildUpcomingCard(c)),
+            );
+          } else {
+            upcomingStatus.textContent =
+              "Nothing scheduled right now — check back soon.";
+            upcomingStatus.className = "status-line";
+          }
+
+          if (recent.length) {
+            recentStatus.textContent = `Last ${recent.length} finished round(s). Tap "Roster standings" to pull ranks for tracked handles.`;
+            recent.forEach((c) => recentList.appendChild(buildRecentCard(c)));
+          } else {
+            recentStatus.textContent = "No finished rounds found.";
+          }
+
+          tickCountdowns();
+        } catch (err) {
+          console.error(err);
+          upcomingStatus.textContent =
+            "Could not reach the Codeforces contest.list endpoint. Try refreshing.";
+          upcomingStatus.className = "status-line err";
+          liveStatus.textContent = "—";
+        }
+      }
+
+      init();
+      // Refresh contest list every 5 minutes to catch phase changes (upcoming -> live -> finished).
+      setInterval(init, 5 * 60 * 1000);
+    </script>
+  </body>
+</html>
