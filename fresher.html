@@ -1016,7 +1016,7 @@ function renderSidebarSoft(){
   renderSidebar();
 }
 
-/* ---------------- CODE EXECUTION (Glot.io API - No Token Needed) ---------------- */
+/* ---------------- CODE EXECUTION (OneCompiler API via RapidAPI) ---------------- */
 async function runCode(prob, wrap){
   const runBtn = wrap.querySelector('#runBtn');
   const outputEl = wrap.querySelector('#outputConsole');
@@ -1034,10 +1034,15 @@ async function runCode(prob, wrap){
 
   const t0 = performance.now();
   try{
-    const res = await fetch('https://snippets.glot.io/snippets/cpp', {
+    const res = await fetch('https://onecompiler-apis.p.rapidapi.com/api/v1/run', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'x-rapidapi-host': 'onecompiler-apis.p.rapidapi.com',
+        'x-rapidapi-key': '2aa9213950mshbe7c8fc96ee2223p106e53jsn4596c789c197'
+      },
       body: JSON.stringify({
+        language: 'cpp',
         files: [{ name: 'main.cpp', content: prob.code || '' }],
         stdin: prob.input || ''
       })
@@ -1049,13 +1054,12 @@ async function runCode(prob, wrap){
     runMeta.textContent = `${elapsed}s`;
 
     const stdout = result.stdout || '';
-    const stderr = result.stderr || '';
-    const error = result.error || '';
+    const stderr = result.stderr || result.exception || '';
 
-    if(stderr || error){
+    if(stderr){
       chip.className = 'verdict-chip err';
       verdictText.textContent = 'error / failed';
-      outputEl.textContent = stderr || error;
+      outputEl.textContent = stderr;
     } else {
       chip.className = 'verdict-chip ok';
       verdictText.textContent = 'ran successfully';
