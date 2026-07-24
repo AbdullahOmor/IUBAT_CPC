@@ -480,10 +480,6 @@
 
   /* Hide admin elements when not authorized */
   body:not(.dev-authorized) .admin-only { display: none !important; }
-  body:not(.dev-authorized) .editor-title-row input.name-input,
-  body:not(.dev-authorized) .statement-area,
-  body:not(.dev-authorized) .code-area,
-  body:not(.dev-authorized) .io-area { pointer-events: none; opacity: 0.8; }
 
   /* mobile sidebar toggle */
   .menu-toggle{display:none;}
@@ -835,6 +831,14 @@ function renderMain(){
 }
 
 function renderProblemList(content, batch, cls){
+  // Sort problems naturally/numerically based on their name (e.g. "Problem 1", "Problem 2" ...)
+  cls.problems.sort((a, b) => {
+    const numA = parseInt((a.name.match(/\d+/) || [0])[0], 10);
+    const numB = parseInt((b.name.match(/\d+/) || [0])[0], 10);
+    if (numA !== numB) return numA - numB;
+    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+  });
+
   const wrap = document.createElement('div');
   wrap.className = 'fade-in';
   wrap.innerHTML = `
@@ -919,7 +923,7 @@ function renderProblemEditor(content, batch, cls, prob){
   wrap.innerHTML = `
     <div class="editor-title-row">
       <button class="btn btn-ghost" id="backBtn">← Problems</button>
-      <input class="name-input" id="probName" value="${escapeHtml(prob.name)}">
+      <input class="name-input" id="probName" value="${escapeHtml(prob.name)}" ${!isDevAuthorized ? 'readonly' : ''}>
     </div>
     <div class="editor-grid">
       <div class="editor-left-stack">
@@ -962,35 +966,47 @@ function renderProblemEditor(content, batch, cls, prob){
   wrap.querySelector('#backBtn').onclick = ()=>{ selected.problemId = null; renderMain(); };
 
   async function updateProblemField(field, value){
-    if(!isDevAuthorized || !db) return;
     prob[field] = value;
+    if(!isDevAuthorized || !db) return;
     const payload = {};
     payload[field] = value;
     await db.from('problems').update(payload).eq('id', prob.id);
   }
 
   const nameInput = wrap.querySelector('#probName');
-  nameInput.oninput = (e)=>{ updateProblemField('name', e.target.value); };
-  nameInput.onblur = renderSidebarSoft;
+  if(isDevAuthorized){
+    nameInput.oninput = (e)=>{ updateProblemField('name', e.target.value); };
+    nameInput.onblur = renderSidebarSoft;
+  }
 
   const statementArea = wrap.querySelector('#statementArea');
-  statementArea.oninput = (e)=>{ updateProblemField('statement', e.target.value); };
+  statementArea.oninput = (e)=>{ 
+    prob.statement = e.target.value;
+    if(isDevAuthorized) updateProblemField('statement', e.target.value); 
+  };
 
   const codeArea = wrap.querySelector('#codeArea');
-  codeArea.oninput = (e)=>{ updateProblemField('code', e.target.value); };
+  codeArea.oninput = (e)=>{ 
+    prob.code = e.target.value;
+    if(isDevAuthorized) updateProblemField('code', e.target.value); 
+  };
+  
   codeArea.addEventListener('keydown', (e)=>{
-    if(!isDevAuthorized) return;
     if(e.key === 'Tab'){
       e.preventDefault();
       const start = codeArea.selectionStart, end = codeArea.selectionEnd;
       codeArea.value = codeArea.value.slice(0,start) + '    ' + codeArea.value.slice(end);
       codeArea.selectionStart = codeArea.selectionEnd = start + 4;
-      updateProblemField('code', codeArea.value);
+      prob.code = codeArea.value;
+      if(isDevAuthorized) updateProblemField('code', codeArea.value);
     }
   });
 
   const inputArea = wrap.querySelector('#inputArea');
-  inputArea.oninput = (e)=>{ updateProblemField('input', e.target.value); };
+  inputArea.oninput = (e)=>{ 
+    prob.input = e.target.value;
+    if(isDevAuthorized) updateProblemField('input', e.target.value); 
+  };
 
   const runBtn = wrap.querySelector('#runBtn');
   runBtn.onclick = ()=> runCode(prob, wrap);
