@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Freshers Corner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Include Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --bg-ink:#0D1117;
+    --surface:#161B22;
+    --surface-raised:#1C232D;
+    --border:#2B3440;
+    --text-primary:#E6EDF3;
+    --text-secondary:#7D8A99;
+    --accent-cyan:#4FD1C5;
+    --accent-cyan-dim:#2A5F5A;
+    --accent-amber:#E3B341;
+    --verdict-green:#3FB950;
+    --verdict-red:#F85149;
+    --font-display:'Space Mono', 'JetBrains Mono', monospace;
+    --font-body:'Inter', -apple-system, sans-serif;
+    --font-mono:'JetBrains Mono', 'Space Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg-ink);
+    color:var(--text-primary);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+  a,button,textarea,input{font-family:inherit;}
+  button{cursor:pointer;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;}
+  ::-webkit-scrollbar-thumb:hover{background:#3a4552;}
+
+  .app{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    height:100vh;
+    width:100vw;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .brand{
+    padding:20px 18px 14px;
+    border-bottom:1px solid var(--border);
+    flex-shrink:0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand-content {
+    display: flex;
+    flex-direction: column;
+  }
+  .brand-mark{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:16px;
+    letter-spacing:0.02em;
+    color:var(--text-primary);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .brand-mark .dot{color:var(--accent-cyan);}
+  .brand-sub{
+    font-size:11px;
+    color:var(--text-secondary);
+    margin-top:4px;
+    font-family:var(--font-mono);
+    letter-spacing:0.03em;
+  }
+  .home-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .home-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: var(--surface-raised);
+  }
+  .sidebar-scroll{
+    flex:1;
+    overflow-y:auto;
+    padding:12px 10px 16px;
+  }
+  .add-batch-btn{
+    width:100%;
+    background:transparent;
+    border:1px dashed var(--border);
+    color:var(--text-secondary);
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:13px;
+    font-family:var(--font-mono);
+    text-align:left;
+    transition:border-color .15s, color .15s;
+  }
+  .add-batch-btn:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .add-batch-btn:focus-visible{outline:2px solid var(--accent-cyan); outline-offset:2px;}
+
+  .batch-block{margin-top:10px;}
+  .batch-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 8px;
+    border-radius:8px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .batch-head:hover{background:var(--surface-raised);}
+  .batch-badge{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:12px;
+    background:var(--accent-cyan-dim);
+    color:var(--accent-cyan);
+    padding:4px 8px;
+    border-radius:5px;
+    letter-spacing:0.03em;
+    flex-shrink:0;
+  }
+  .batch-name-text{font-size:13px; color:var(--text-primary); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .batch-caret{color:var(--text-secondary); font-size:10px; transition:transform .15s;}
+  .batch-caret.open{transform:rotate(90deg);}
+  .batch-del{
+    background:none;border:none;color:var(--text-secondary);font-size:14px;padding:2px 4px;border-radius:4px;opacity:0;
+  }
+  .batch-head:hover .batch-del{opacity:1;}
+  .batch-del:hover{color:var(--verdict-red);}
+
+  .class-list{margin-left:14px; border-left:1px solid var(--border); padding-left:10px; margin-top:2px;}
+  .class-row{
+    display:flex;align-items:center;gap:8px;
+    padding:7px 8px;border-radius:7px;cursor:pointer;margin-top:2px;
+  }
+  .class-row:hover{background:var(--surface-raised);}
+  .class-row.active{background:var(--accent-cyan-dim);}
+  .class-row.active .class-title{color:var(--accent-cyan);}
+  .class-title{font-size:12.5px;color:var(--text-primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .class-date{font-size:10.5px;color:var(--text-secondary);font-family:var(--font-mono);flex-shrink:0;}
+  .class-del{background:none;border:none;color:var(--text-secondary);font-size:12px;opacity:0;padding:2px 4px;}
+  .class-row:hover .class-del{opacity:1;}
+  .class-del:hover{color:var(--verdict-red);}
+  .add-class-btn{
+    margin-top:2px;
+    font-size:11.5px;
+    color:var(--text-secondary);
+    background:none;border:none;padding:6px 8px;
+    font-family:var(--font-mono);
+  }
+  .add-class-btn:hover{color:var(--accent-amber);}
+
+  /* ---------- MAIN ---------- */
+  .main{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    overflow:hidden;
+  }
+  .topbar{
+    padding:16px 28px;
+    border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:8px;
+    flex-shrink:0;
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--text-secondary);
+  }
+  .crumb-current{color:var(--text-primary); font-weight:500;}
+  .crumb-sep{color:var(--border);}
+
+  .content{
+    flex:1;
+    overflow-y:auto;
+    padding:28px;
+  }
+
+  .empty-state{
+    height:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:var(--text-secondary);
+    text-align:center;
+    gap:10px;
+  }
+  .empty-state .glyph{font-size:36px;font-family:var(--font-display);color:var(--border);}
+  .empty-state h2{font-family:var(--font-display); font-size:16px; color:var(--text-primary); font-weight:700; margin:0;}
+  .empty-state p{font-size:13px; margin:0; max-width:320px; line-height:1.5;}
+
+  .problems-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .problems-header h1{
+    font-family:var(--font-display);
+    font-size:19px;
+    margin:0;
+    font-weight:700;
+  }
+  .problems-header .meta{font-size:12px;color:var(--text-secondary);font-family:var(--font-mono);margin-top:4px;}
+  .btn{
+    background:var(--accent-cyan);
+    color:#08201d;
+    border:none;
+    padding:9px 16px;
+    border-radius:7px;
+    font-size:13px;
+    font-weight:700;
+    font-family:var(--font-body);
+    transition:filter .15s, transform .1s;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:active{transform:scale(0.98);}
+  .btn:focus-visible{outline:2px solid var(--text-primary); outline-offset:2px;}
+  .btn-ghost{
+    background:transparent;border:1px solid var(--border); color:var(--text-primary);
+  }
+  .btn-ghost:hover{border-color:var(--accent-cyan); color:var(--accent-cyan); filter:none;}
+
+  .problem-list{display:flex;flex-direction:column;gap:8px;}
+  .problem-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;
+    transition:border-color .15s, transform .1s;
+  }
+  .problem-card:hover{border-color:var(--accent-cyan); transform:translateX(2px);}
+  .problem-card-left{display:flex;align-items:center;gap:12px; min-width:0;}
+  .problem-index{
+    font-family:var(--font-display);
+    color:var(--accent-amber);
+    font-size:12px;
+    flex-shrink:0;
+    width:28px;
+  }
+  .problem-name{font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .problem-del{background:none;border:none;color:var(--text-secondary);font-size:13px;padding:4px 8px;border-radius:5px;}
+  .problem-del:hover{color:var(--verdict-red); background:rgba(248,81,73,0.1);}
+
+  /* ---------- PROBLEM EDITOR ---------- */
+  .editor-wrap{display:flex; flex-direction:column; gap:16px; height:100%;}
+  .editor-title-row{display:flex; align-items:center; gap:10px;}
+  .editor-title-row input.name-input{
+    font-family:var(--font-display);
+    font-size:18px;
+    font-weight:700;
+    background:transparent;
+    border:1px solid transparent;
+    color:var(--text-primary);
+    padding:6px 8px;
+    border-radius:6px;
+    flex:1;
+    min-width:0;
+  }
+  .editor-title-row input.name-input:hover{border-color:var(--border);}
+  .editor-title-row input.name-input:focus{border-color:var(--accent-cyan); outline:none; background:var(--surface);}
+
+  .editor-grid{
+    display:grid;
+    grid-template-columns:1.2fr 1fr;
+    gap:16px;
+    flex:1;
+    min-height:0;
+  }
+  @media (max-width:900px){
+    .editor-grid{grid-template-columns:1fr;}
+  }
+
+  .editor-left-stack{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    min-height:0;
+  }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    min-height:180px;
+  }
+  .panel-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    flex-shrink:0;
+  }
+  .panel-head .dots{display:flex;gap:5px;}
+  .panel-head .dots span{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .dots .d1{background:#F85149;} .dots .d2{background:#E3B341;} .dots .d3{background:#3FB950;}
+  .panel-head .label{font-family:var(--font-mono); font-size:11.5px; color:var(--text-secondary); letter-spacing:0.03em;}
+
+  .code-area, .io-area, .statement-area{
+    flex:1;
+    background:transparent;
+    color:var(--text-primary);
+    border:none;
+    resize:none;
+    font-family:var(--font-mono);
+    font-size:13px;
+    line-height:1.6;
+    padding:14px;
+    outline:none;
+    width:100%;
+  }
+  .statement-area{font-family:var(--font-body); font-size:13.5px;}
+  .code-area{tab-size:4;}
+  .io-area::placeholder, .code-area::placeholder, .statement-area::placeholder{color:#4a5560;}
+
+  .io-stack{display:flex; flex-direction:column; gap:16px;}
+  .io-panel{flex:1; min-height:120px;}
+
+  .run-row{
+    display:flex;align-items:center;gap:12px;
+    flex-shrink:0;
+  }
+  .verdict-chip{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    padding:6px 12px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    color:var(--text-secondary);
+    display:flex;align-items:center;gap:7px;
+  }
+  .verdict-chip .vdot{width:7px;height:7px;border-radius:50%;background:var(--text-secondary);}
+  .verdict-chip.running .vdot{background:var(--accent-amber);}
+  .verdict-chip.ok .vdot{background:var(--verdict-green);}
+  .verdict-chip.ok{color:var(--verdict-green); border-color:var(--accent-cyan-dim);}
+  .verdict-chip.err .vdot{background:var(--verdict-red);}
+  .verdict-chip.err{color:var(--verdict-red); border-color:#4a2325;}
+
+  .run-btn{
+    background:var(--verdict-green);
+    color:#062910;
+    border:none;
+    padding:10px 22px;
+    border-radius:7px;
+    font-weight:700;
+    font-size:13.5px;
+    display:flex;align-items:center;gap:8px;
+    transition:filter .15s, transform .1s;
+  }
+  .run-btn:hover{filter:brightness(1.08);}
+  .run-btn:disabled{background:var(--border); color:var(--text-secondary); cursor:wait;}
+
+  .output-console{
+    flex:1;
+    background:#080B0F;
+    color:#C9D6DE;
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    line-height:1.6;
+    padding:14px;
+    overflow-y:auto;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .output-console .stderr-line{color:var(--verdict-red);}
+  .output-console.placeholder{color:#3d4750;}
+
+  .fade-in{animation:fadeIn .18s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(3px);} to{opacity:1; transform:translateY(0);}}
+
+  /* modal */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(5,7,10,0.7);
+    display:flex; align-items:center; justify-content:center;
+    z-index:50;
+  }
+  .modal{
+    background:var(--surface-raised);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px;
+    width:320px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .modal h3{margin:0; font-family:var(--font-display); font-size:15px;}
+  .modal label{font-size:11.5px; color:var(--text-secondary); font-family:var(--font-mono);}
+  .modal input{
+    background:var(--bg-ink); border:1px solid var(--border); color:var(--text-primary);
+    padding:9px 10px; border-radius:6px; font-size:13px; width:100%;
+  }
+  .modal input:focus{outline:none; border-color:var(--accent-cyan);}
+  .modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:4px;}
+
+  /* Dev Drawer Styles */
+  .dev-drawer {
+    background: #0b0f17;
+    border-bottom: 2px solid var(--verdict-red);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 100;
+  }
+  .dev-drawer.open { max-height: 120px; }
+  .dev-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .dev-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--verdict-red);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 0;
+  }
+  .dev-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .dev-input {
+    background: rgba(0,0,0,0.4) !important;
+    border: 1px solid rgba(248, 81, 73, 0.2) !important;
+    color: var(--text-primary) !important;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    font-family: var(--font-mono) !important;
+    font-size: 12px !important;
+    width: 220px !important;
+  }
+  .dev-input:focus { border-color: var(--verdict-red) !important; outline: none; box-shadow: 0 0 15px rgba(248, 81, 73, 0.15) !important;}
+  .dev-btn {
+    background: var(--verdict-red);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .dev-btn:hover { filter: brightness(1.1); }
+
+  /* Hide admin elements when not authorized */
+  body:not(.dev-authorized) .admin-only { display: none !important; }
+  body:not(.dev-authorized) .editor-title-row input.name-input,
+  body:not(.dev-authorized) .statement-area,
+  body:not(.dev-authorized) .code-area,
+  body:not(.dev-authorized) .io-area { pointer-events: none; opacity: 0.8; }
+
+  /* mobile sidebar toggle */
+  .menu-toggle{display:none;}
+  @media (max-width:760px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{
+      position:fixed; left:0; top:0; bottom:0; width:260px; z-index:40;
+      transform:translateX(-100%); transition:transform .2s;
+    }
+    .sidebar.open{transform:translateX(0);}
+    .menu-toggle{
+      display:inline-flex; background:none; border:1px solid var(--border); color:var(--text-primary);
+      padding:6px 10px; border-radius:6px; font-family:var(--font-mono); font-size:12px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="dev-drawer" id="devDrawer">
+  <div class="dev-container">
+    <p class="dev-title">// Root Access Control</p>
+    <div class="dev-form">
+      <input type="password" id="devPassword" class="dev-input" placeholder="Authorization Token...">
+      <button id="devAuthBtn" class="dev-btn">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-content">
+        <div class="brand-mark"><span class="dot">▍</span>FRESHERS CORNER</div>
+        <div class="brand-sub">batch → class → problem</div>
+      </div>
+      <a href="index.html" class="home-btn" title="Go to Index">🏠 Index</a>
+    </div>
+    <div class="sidebar-scroll" id="sidebarScroll"></div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰ batches</button>
+      <span id="breadcrumb"></span>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<script>
+// Supabase Configuration
+const SUPABASE_URL = 'https://zqfzwigipfokwrnzkykj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxZnp3aWdpcGZva3dybnpreWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDg2MjgsImV4cCI6MjA5OTUyNDYyOH0.KiA3CAv462bzOZxQBzZrZdzR-zNEwBAL8bxPciHYqJA';
+
+const supabaseReady = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_PUBLIC_KEY';
+const db = supabaseReady ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+let data = { batches: [] };
+let selected = { batchId: null, classId: null, problemId: null };
+let openBatches = new Set();
+let isDevAuthorized = false;
+
+const STARTER_CODE = `#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    
+
+    return 0;
+}
+`;
+
+// Load data from Supabase tables: batches -> classes -> problems
+async function loadData(){
+  if(!db) return;
+  try {
+    const { data: batchesData, error: bErr } = await db.from('batches').select('*').order('created_at', { ascending: true });
+    if(bErr) throw bErr;
+
+    const { data: classesData, error: cErr } = await db.from('classes').select('*').order('class_date', { ascending: true });
+    if(cErr) throw cErr;
+
+    const { data: problemsData, error: pErr } = await db.from('problems').select('*');
+    if(pErr) throw pErr;
+
+    // Nest classes into batches, and problems into classes
+    data.batches = (batchesData || []).map(b => ({
+      id: b.id,
+      name: b.name,
+      classes: (classesData || [])
+        .filter(c => c.batch_id === b.id)
+        .map(c => ({
+          id: c.id,
+          classNo: c.class_no,
+          date: c.class_date,
+          problems: (problemsData || [])
+            .filter(p => p.class_id === c.id)
+            .map(p => ({
+              id: p.id,
+              name: p.name,
+              statement: p.statement || '',
+              code: p.code || STARTER_CODE,
+              input: p.input || ''
+            }))
+        }))
+    }));
+  } catch (e) {
+    console.error('Failed to load data from Supabase:', e);
+  }
+}
+
+function findBatch(id){ return data.batches.find(b=>b.id===id); }
+function findClass(batch, id){ return batch.classes.find(c=>c.id===id); }
+function findProblem(cls, id){ return cls.problems.find(p=>p.id===id); }
+
+/* ---------------- DEV DRAWER TRIGGER & AUTH ---------------- */
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'y') {
+    e.preventDefault();
+    document.getElementById('devDrawer').classList.toggle('open');
+    document.getElementById('devPassword').focus();
+  }
+});
+
+document.getElementById('devAuthBtn').addEventListener('click', () => {
+  const pin = document.getElementById('devPassword').value;
+  if(pin === 'IUBATCPC@1991') {
+    isDevAuthorized = true;
+    document.body.classList.add('dev-authorized');
+    document.getElementById('devDrawer').classList.remove('open');
+    alert('Developer status verified. Admin tools mounted.');
+    renderSidebar();
+    renderMain();
+  } else {
+    alert('Invalid authentication signature.');
+  }
+});
+
+/* ---------------- MODAL ---------------- */
+function openModal(title, fields, onSubmit){
+  if(!isDevAuthorized) return;
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  let html = `<h3>${title}</h3>`;
+  fields.forEach(f=>{
+    html += `<div><label>${f.label}</label><input type="${f.type||'text'}" id="mf-${f.key}" placeholder="${f.placeholder||''}" value="${f.value||''}"></div>`;
+  });
+  html += `<div class="modal-actions"><button class="btn btn-ghost" id="mCancel">Cancel</button><button class="btn" id="mOk">Save</button></div>`;
+  modal.innerHTML = html;
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  const firstInput = modal.querySelector('input');
+  if(firstInput) firstInput.focus();
+
+  function close(){ backdrop.remove(); }
+  modal.querySelector('#mCancel').onclick = close;
+  backdrop.onclick = (e)=>{ if(e.target===backdrop) close(); };
+  modal.querySelector('#mOk').onclick = ()=>{
+    const values = {};
+    fields.forEach(f=>{ values[f.key] = modal.querySelector(`#mf-${f.key}`).value.trim(); });
+    if(fields.some(f=>f.required && !values[f.key])) return;
+    onSubmit(values);
+    close();
+  };
+  modal.addEventListener('keydown', e=>{
+    if(e.key==='Enter') modal.querySelector('#mOk').click();
+    if(e.key==='Escape') close();
+  });
+}
+
+/* ---------------- SIDEBAR RENDER ---------------- */
+function renderSidebar(){
+  const el = document.getElementById('sidebarScroll');
+  el.innerHTML = '';
+
+  const addBatchBtn = document.createElement('button');
+  addBatchBtn.className = 'add-batch-btn admin-only';
+  addBatchBtn.textContent = '+ Add batch';
+  addBatchBtn.onclick = async ()=>{
+    if(!isDevAuthorized) return;
+    openModal('Add batch', [{key:'name', label:'Batch name', placeholder:'e.g. 242', required:true}], async (v)=>{
+      const newId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+      const b = { id: newId, name: v.name, classes: [] };
+      
+      if(db){
+        const { error } = await db.from('batches').insert([{ id: newId, name: v.name }]);
+        if(error){ console.error(error); alert('Error saving batch to Supabase'); return; }
+      }
+      
+      data.batches.push(b);
+      openBatches.add(b.id);
+      renderSidebar();
+    });
+  };
+  el.appendChild(addBatchBtn);
+
+  data.batches.forEach(batch=>{
+    const block = document.createElement('div');
+    block.className = 'batch-block';
+
+    const head = document.createElement('div');
+    head.className = 'batch-head';
+    const isOpen = openBatches.has(batch.id);
+    head.innerHTML = `
+      <span class="batch-caret ${isOpen?'open':''}">▶</span>
+      <span class="batch-badge">${escapeHtml(batch.name)}</span>
+      <span class="batch-name-text">${batch.classes.length} class${batch.classes.length!==1?'es':''}</span>
+      <button class="batch-del admin-only" title="Delete batch">✕</button>
+    `;
+    const delBatchBtn = head.querySelector('.batch-del');
+    if(delBatchBtn){
+      delBatchBtn.onclick = async (e)=>{
+        e.stopPropagation();
+        if(!isDevAuthorized) return;
+        if(confirm(`Delete batch "${batch.name}" and everything inside it?`)){
+          if(db){
+            const { error } = await db.from('batches').delete().eq('id', batch.id);
+            if(error){ console.error(error); return; }
+          }
+          data.batches = data.batches.filter(b=>b.id!==batch.id);
+          if(selected.batchId===batch.id) selected = {batchId:null,classId:null,problemId:null};
+          renderSidebar(); renderMain();
+        }
+      };
+    }
+    head.onclick = ()=>{
+      if(isOpen) openBatches.delete(batch.id); else openBatches.add(batch.id);
+      renderSidebar();
+    };
+    block.appendChild(head);
+
+    if(isOpen){
+      const classList = document.createElement('div');
+      classList.className = 'class-list';
+      batch.classes.forEach(cls=>{
+        const row = document.createElement('div');
+        row.className = 'class-row' + (selected.classId===cls.id ? ' active':'');
+        row.innerHTML = `
+          <span class="class-title">${escapeHtml(cls.classNo)}</span>
+          <span class="class-date">${escapeHtml(cls.date||'')}</span>
+          <button class="class-del admin-only" title="Delete class">✕</button>
+        `;
+        const delClassBtn = row.querySelector('.class-del');
+        if(delClassBtn){
+          delClassBtn.onclick = async (e)=>{
+            e.stopPropagation();
+            if(!isDevAuthorized) return;
+            if(confirm(`Delete "${cls.classNo}" and its problems?`)){
+              if(db){
+                const { error } = await db.from('classes').delete().eq('id', cls.id);
+                if(error){ console.error(error); return; }
+              }
+              batch.classes = batch.classes.filter(c=>c.id!==cls.id);
+              if(selected.classId===cls.id) selected = {batchId:batch.id, classId:null, problemId:null};
+              renderSidebar(); renderMain();
+            }
+          };
+        }
+        row.onclick = ()=>{
+          selected = { batchId: batch.id, classId: cls.id, problemId: null };
+          renderSidebar(); renderMain();
+          closeMobileSidebar();
+        };
+        classList.appendChild(row);
+      });
+
+      const addClassBtn = document.createElement('button');
+      addClassBtn.className = 'add-class-btn admin-only';
+      addClassBtn.textContent = '+ Add class';
+      addClassBtn.onclick = ()=>{
+        if(!isDevAuthorized) return;
+        openModal('Add class', [
+          {key:'classNo', label:'Class label', placeholder:'e.g. Class 1', required:true},
+          {key:'date', label:'Date', type:'date', required:true}
+        ], async (v)=>{
+          const newId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+          const c = { id: newId, classNo: v.classNo, date: v.date, problems: [] };
+          
+          if(db){
+            const { error } = await db.from('classes').insert([{ id: newId, batch_id: batch.id, class_no: v.classNo, class_date: v.date }]);
+            if(error){ console.error(error); alert('Error saving class to Supabase'); return; }
+          }
+          
+          batch.classes.push(c);
+          selected = { batchId: batch.id, classId: c.id, problemId: null };
+          renderSidebar(); renderMain();
+        });
+      };
+      classList.appendChild(addClassBtn);
+      block.appendChild(classList);
+    }
+
+    el.appendChild(block);
+  });
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------- MAIN CONTENT RENDER ---------------- */
+function renderMain(){
+  const content = document.getElementById('content');
+  const breadcrumb = document.getElementById('breadcrumb');
+  content.innerHTML = '';
+
+  const batch = selected.batchId ? findBatch(selected.batchId) : null;
+  const cls = batch && selected.classId ? findClass(batch, selected.classId) : null;
+  const prob = cls && selected.problemId ? findProblem(cls, selected.problemId) : null;
+
+  // breadcrumb
+  let crumbHtml = '';
+  if(batch) crumbHtml += `<span>${escapeHtml(batch.name)}</span>`;
+  if(cls) crumbHtml += `<span class="crumb-sep"> / </span><span>${escapeHtml(cls.classNo)}</span>`;
+  if(prob) crumbHtml += `<span class="crumb-sep"> / </span><span class="crumb-current">${escapeHtml(prob.name)}</span>`;
+  breadcrumb.innerHTML = crumbHtml;
+
+  if(!batch){
+    content.innerHTML = `
+      <div class="empty-state fade-in">
+        <div class="glyph">242</div>
+        <h2>No batch selected</h2>
+        <p>Pick a batch from the sidebar to view classes and problems.</p>
+      </div>`;
+    return;
+  }
+
+  if(!cls){
+    content.innerHTML = `
+      <div class="empty-state fade-in">
+        <div class="glyph">◷</div>
+        <h2>No class selected</h2>
+        <p>Pick a class under ${escapeHtml(batch.name)} from the sidebar.</p>
+      </div>`;
+    return;
+  }
+
+  if(!prob){
+    renderProblemList(content, batch, cls);
+    return;
+  }
+
+  renderProblemEditor(content, batch, cls, prob);
+}
+
+function renderProblemList(content, batch, cls){
+  const wrap = document.createElement('div');
+  wrap.className = 'fade-in';
+  wrap.innerHTML = `
+    <div class="problems-header">
+      <div>
+        <h1>${escapeHtml(cls.classNo)}</h1>
+        <div class="meta">${escapeHtml(cls.date||'no date set')} · batch ${escapeHtml(batch.name)}</div>
+      </div>
+      <button class="btn admin-only" id="addProblemBtn">+ Add problem</button>
+    </div>
+    <div class="problem-list" id="problemList"></div>
+  `;
+  content.appendChild(wrap);
+
+  const list = wrap.querySelector('#problemList');
+  if(cls.problems.length===0){
+    list.innerHTML = `<div class="empty-state" style="height:200px;"><p>No problems available for this class yet.</p></div>`;
+  }
+  cls.problems.forEach((p, i)=>{
+    const card = document.createElement('div');
+    card.className = 'problem-card';
+    card.innerHTML = `
+      <div class="problem-card-left">
+        <span class="problem-index">${String(i+1).padStart(2,'0')}</span>
+        <span class="problem-name">${escapeHtml(p.name)}</span>
+      </div>
+      <button class="problem-del admin-only" title="Delete problem">✕</button>
+    `;
+    const delProbBtn = card.querySelector('.problem-del');
+    if(delProbBtn){
+      delProbBtn.onclick = async (e)=>{
+        e.stopPropagation();
+        if(!isDevAuthorized) return;
+        if(confirm(`Delete problem "${p.name}"?`)){
+          if(db){
+            const { error } = await db.from('problems').delete().eq('id', p.id);
+            if(error){ console.error(error); return; }
+          }
+          cls.problems = cls.problems.filter(x=>x.id!==p.id);
+          renderMain();
+        }
+      };
+    }
+    card.onclick = ()=>{
+      selected.problemId = p.id;
+      renderMain();
+    };
+    list.appendChild(card);
+  });
+
+  const addProbBtn = wrap.querySelector('#addProblemBtn');
+  if(addProbBtn){
+    addProbBtn.onclick = ()=>{
+      if(!isDevAuthorized) return;
+      openModal('Add problem', [{key:'name', label:'Problem name', placeholder:'e.g. Problem 1 — Two Sum', required:true}], async (v)=>{
+        const newId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+        const p = { id: newId, name: v.name, statement: '', code: STARTER_CODE, input: '' };
+        
+        if(db){
+          const { error } = await db.from('problems').insert([{
+            id: newId,
+            class_id: cls.id,
+            name: v.name,
+            statement: '',
+            code: STARTER_CODE,
+            input: ''
+          }]);
+          if(error){ console.error(error); alert('Error saving problem to Supabase'); return; }
+        }
+
+        cls.problems.push(p);
+        selected.problemId = p.id;
+        renderMain();
+      });
+    };
+  }
+}
+
+function renderProblemEditor(content, batch, cls, prob){
+  const wrap = document.createElement('div');
+  wrap.className = 'editor-wrap fade-in';
+  wrap.innerHTML = `
+    <div class="editor-title-row">
+      <button class="btn btn-ghost" id="backBtn">← Problems</button>
+      <input class="name-input" id="probName" value="${escapeHtml(prob.name)}">
+    </div>
+    <div class="editor-grid">
+      <div class="editor-left-stack">
+        <div class="panel" style="flex: 1;">
+          <div class="panel-head">
+            <span class="label">problem statement</span>
+          </div>
+          <textarea class="statement-area" id="statementArea" spellcheck="false" placeholder="Write problem description, constraints, or notes here...">${escapeHtml(prob.statement || '')}</textarea>
+        </div>
+        <div class="panel" style="flex: 1.5;">
+          <div class="panel-head">
+            <span class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></span>
+            <span class="label">solution.cpp</span>
+            <span class="label"></span>
+          </div>
+          <textarea class="code-area" id="codeArea" spellcheck="false" placeholder="Write your C++ solution here...">${escapeHtml(prob.code || STARTER_CODE)}</textarea>
+        </div>
+      </div>
+      <div class="io-stack">
+        <div class="panel io-panel">
+          <div class="panel-head"><span class="label">stdin — input</span></div>
+          <textarea class="io-area" id="inputArea" spellcheck="false" placeholder="Type the input your program should read...">${escapeHtml(prob.input || '')}</textarea>
+        </div>
+        <div class="panel io-panel">
+          <div class="panel-head">
+            <span class="label">output</span>
+            <span class="verdict-chip" id="verdictChip"><span class="vdot"></span><span id="verdictText">idle</span></span>
+          </div>
+          <div class="output-console placeholder" id="outputConsole">run the code to see output here</div>
+        </div>
+      </div>
+    </div>
+    <div class="run-row">
+      <button class="run-btn" id="runBtn">▶ Run code</button>
+      <span class="label" style="font-family:var(--font-mono); font-size:11.5px; color:var(--text-secondary);" id="runMeta"></span>
+    </div>
+  `;
+  content.appendChild(wrap);
+
+  wrap.querySelector('#backBtn').onclick = ()=>{ selected.problemId = null; renderMain(); };
+
+  async function updateProblemField(field, value){
+    if(!isDevAuthorized || !db) return;
+    prob[field] = value;
+    const payload = {};
+    payload[field] = value;
+    await db.from('problems').update(payload).eq('id', prob.id);
+  }
+
+  const nameInput = wrap.querySelector('#probName');
+  nameInput.oninput = (e)=>{ updateProblemField('name', e.target.value); };
+  nameInput.onblur = renderSidebarSoft;
+
+  const statementArea = wrap.querySelector('#statementArea');
+  statementArea.oninput = (e)=>{ updateProblemField('statement', e.target.value); };
+
+  const codeArea = wrap.querySelector('#codeArea');
+  codeArea.oninput = (e)=>{ updateProblemField('code', e.target.value); };
+  codeArea.addEventListener('keydown', (e)=>{
+    if(!isDevAuthorized) return;
+    if(e.key === 'Tab'){
+      e.preventDefault();
+      const start = codeArea.selectionStart, end = codeArea.selectionEnd;
+      codeArea.value = codeArea.value.slice(0,start) + '    ' + codeArea.value.slice(end);
+      codeArea.selectionStart = codeArea.selectionEnd = start + 4;
+      updateProblemField('code', codeArea.value);
+    }
+  });
+
+  const inputArea = wrap.querySelector('#inputArea');
+  inputArea.oninput = (e)=>{ updateProblemField('input', e.target.value); };
+
+  const runBtn = wrap.querySelector('#runBtn');
+  runBtn.onclick = ()=> runCode(prob, wrap);
+}
+
+function renderSidebarSoft(){
+  renderSidebar();
+}
+
+/* ---------------- CODE EXECUTION (Glot.io API - No Token Needed) ---------------- */
+async function runCode(prob, wrap){
+  const runBtn = wrap.querySelector('#runBtn');
+  const outputEl = wrap.querySelector('#outputConsole');
+  const chip = wrap.querySelector('#verdictChip');
+  const verdictText = wrap.querySelector('#verdictText');
+  const runMeta = wrap.querySelector('#runMeta');
+
+  runBtn.disabled = true;
+  runBtn.textContent = 'Running…';
+  chip.className = 'verdict-chip running';
+  verdictText.textContent = 'running';
+  outputEl.className = 'output-console';
+  outputEl.textContent = '';
+  runMeta.textContent = '';
+
+  const t0 = performance.now();
+  try{
+    const res = await fetch('https://snippets.glot.io/snippets/cpp', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        files: [{ name: 'main.cpp', content: prob.code || '' }],
+        stdin: prob.input || ''
+      })
+    });
+    
+    if(!res.ok) throw new Error('Execution service returned an error (' + res.status + ')');
+    const result = await res.json();
+    const elapsed = ((performance.now() - t0)/1000).toFixed(2);
+    runMeta.textContent = `${elapsed}s`;
+
+    const stdout = result.stdout || '';
+    const stderr = result.stderr || '';
+    const error = result.error || '';
+
+    if(stderr || error){
+      chip.className = 'verdict-chip err';
+      verdictText.textContent = 'error / failed';
+      outputEl.textContent = stderr || error;
+    } else {
+      chip.className = 'verdict-chip ok';
+      verdictText.textContent = 'ran successfully';
+      outputEl.textContent = stdout;
+      if(!stdout){
+        outputEl.className = 'output-console placeholder';
+        outputEl.textContent = '(program produced no output)';
+      }
+    }
+  }catch(err){
+    chip.className = 'verdict-chip err';
+    verdictText.textContent = 'failed to run';
+    outputEl.textContent = 'Could not reach the code execution service: ' + err.message;
+  }finally{
+    runBtn.disabled = false;
+    runBtn.textContent = '▶ Run code';
+  }
+}
+
+/* ---------------- MOBILE SIDEBAR ---------------- */
+function closeMobileSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+}
+document.getElementById('menuToggle').onclick = ()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+};
+
+/* ---------------- INIT ---------------- */
+(async function init(){
+  await loadData();
+  data.batches.forEach(b => openBatches.add(b.id));
+  renderSidebar();
+  renderMain();
+})();
+</script>
+</body>
+</html>
